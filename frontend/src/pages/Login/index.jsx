@@ -13,7 +13,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-2">Login</h1>
         <p className="text-gray-600 text-center mb-6">
           Enter your email to Log in for this app
@@ -75,7 +75,7 @@ export default function Login() {
           <img
             src={logo} // cámbialo por tu logo en /public
             alt="BiblioSoft"
-            className="h-90"
+            className="h-100"
           />
           <p className="text-center text-xl font-serif mt-2">BiblioSoft</p>
         </div>
