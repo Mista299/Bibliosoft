@@ -1,0 +1,7 @@
+# Ignorar node_modules en la raíz del proyecto
+node_modules/
+.env/
+
+# Ignorar cualquier archivo dentro de node_modules
+node_modules/**
+
