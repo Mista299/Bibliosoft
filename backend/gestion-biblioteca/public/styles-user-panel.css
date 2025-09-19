@@ -1,0 +1,150 @@
+/* styles.css */
+/* Variables globales */
+:root {
+    --base-font-size: 62.5%;  /* 1rem = 10px */
+    --font-size-base: 1.6rem;  /* 16px */
+    --font-family: Arial, sans-serif;
+    --bg-color-header: #212529;
+    --text-color-header: #fff;
+    --bg-color-nav: #444;
+    --text-color-nav: #fff;
+    --padding-nav: 1rem;
+    --border-radius: 0.5rem;
+    --bg-color-odd-li: #e0e0e0; /* Color de fondo para los elementos impares */
+}
+
+/* Estilos generales */
+*, *:before, *:after {
+    box-sizing: inherit;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding-top: 20px;
+    min-height: 70px;
+    border-bottom: 3px solid #bbb;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+.us-panel {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav {
+    background-color: var(--bg-color-nav);
+    /* margin-top: 2.5rem; */
+    padding: var(--padding-nav);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.us-panel a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    margin: 0 5px;
+    background: #555;
+    border-radius: 5px;
+}
+
+.us-panel a:hover {
+    background: #666;
+}
+
+.section {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+form h3 {
+    margin-bottom: 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+button {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #555;
+}
+
+.book-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.book-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.book-list h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+}
+
+.book-list p {
+    margin: 5px 0;
+}
+
+/* Estilo por defecto para los iconos SVG */
+.nav-link svg {
+    stroke: #A7A295; /* Color predeterminado */
+    transition: stroke 0.3s; /* Transición suave para el cambio de color */
+}
+
+/* Estilo para los iconos SVG al hacer hover */
+.nav-link:hover svg {
+    stroke: #ffffff; /* Color blanco al hacer hover */
+}
+
+/* Opcional: Estilo para los iconos SVG al hacer hover en el enlace */
+.nav-link:hover {
+    color: #ffffff; /* Cambia el color del texto y el icono */
+}
