@@ -1,0 +1,38 @@
+{
+  "name": "gestion-biblioteca",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch app.js",
+    "start": "node app",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "5.1.1",
+    "bootstrap": "5.3.3",
+    "cookie-parser": "1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "16.4.5",
+    "ejs": "3.1.10",
+    "express": "^4.19.2",
+    "jsonwebtoken": "9.0.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.6.0",
+    "eslint": "^9.6.0",
+    "eslint-plugin-node": "^11.1.0",
+    "globals": "^15.8.0",
+    "standard": "^17.1.0"
+  },
+  "eslintConfig": {
+    "extends": "standard"
+  }
+}
