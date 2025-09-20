@@ -1,10 +1,14 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bookController = require('../controllers/bookController');
+const bookController = require("../controllers/bookController");
 
-router.post('/books', bookController.createBook);
-router.get('/books', bookController.getAllBooks);
-router.delete('/books/:isbn', bookController.deleteBooks);
-router.put('/books/:isbn', bookController.updateProp);
+// Crear libro
+router.post("/", bookController.createBook);
+
+// Obtener todos los libros
+router.get("/", bookController.getAllBooks);
+
+// Eliminar libro
+router.delete("/:id", bookController.deleteBook); // 👈 aquí debe existir
 
 module.exports = router;

@@ -1,73 +1,41 @@
-const BookService = require('../services/bookService');
+const bookService = require('../services/bookService');
 
-exports.createBook = async (req, res) => {
-  const { isbn, title, author, genre, publisher, publicationYear, location, loanStatus, summary, availableCopies } = req.body;
-  
+// Crear libro
+const createBook = async (req, res) => {
   try {
-    const newBook = await BookService.create({ isbn, title, author, genre, publisher, publicationYear, location, loanStatus, summary, availableCopies });
-    res.status(201).json({ message: 'Book created successfully', book: newBook });
-  } catch (err) {
-    console.error('Error creating book:', err);
-    res.status(500).json({ message: 'Error creating book', error: err.message });
+    const book = await bookService.createBook(req.body);
+    res.json({ success: true, message: "Libro creado correctamente", book });
+  } catch (error) {
+    console.error("Error creando libro:", error.message);
+    res.status(500).json({ success: false, message: "Error creando libro" });
   }
 };
 
-exports.getAllBooks = async (req, res) => {
+// Obtener todos los libros
+const getAllBooks = async (req, res) => {
   try {
-    const books = await BookService.findAll();
-    res.json(books);
-  } catch (err) {
-    console.error('Error fetching books:', err);
-    res.status(500).send('Error fetching books');
+    const books = await bookService.getAllBooks();
+    res.json({ success: true, books });
+  } catch (error) {
+    console.error("Error obteniendo libros:", error.message);
+    res.status(500).json({ success: false, message: "Error obteniendo libros" });
   }
 };
 
-exports.deleteAllBooks = async (req, res) => {
+// Eliminar libro
+const deleteBook = async (req, res) => {
   try {
-    await BookService.deleteAll();
-    res.status(200).send('All books deleted successfully');
-  } catch (err) {
-    console.error('Error deleting books:', err);
-    res.status(500).send('Error deleting books');
+    const { id } = req.params;
+    await bookService.deleteBook(id);
+    res.json({ success: true, message: `Libro con id ${id} eliminado` });
+  } catch (error) {
+    console.error("Error eliminando libro:", error.message);
+    res.status(500).json({ success: false, message: "Error eliminando libro" });
   }
 };
 
-exports.deleteBooks = async (req, res) => {
-  const { isbn } = req.params;
-
-  try {
-    await BookService.delete(isbn);
-    res.status(200).send('Book deleted successfully');
-  } catch (err) {
-    console.error('Error deleting book:', err);
-    res.status(500).send('Error deleting book');
-  }
-};
-
-exports.updateProp = async (req, res) => {
-  const { isbn } = req.params;
-  const { prop, value } = req.body;
-
-  console.log(`Updating book with ISBN: ${isbn}`);
-  console.log(`Property to update: ${prop}`);
-  console.log(`New value: ${value}`);
-
-  const allowedProps = ['title', 'author', 'genre', 'publisher', 'publicationYear', 'location', 'loanStatus', 'summary'];
-  if (!allowedProps.includes(prop)) {
-    console.log('Invalid property');
-    return res.status(400).json({ error: 'Invalid property' });
-  }
-
-  try {
-    const updatedBook = await BookService.update(isbn, prop, value);
-    if (!updatedBook) {
-      console.log(`Book with ISBN ${isbn} not found`);
-      return res.status(404).json({ error: `Book with ISBN ${isbn} not found` });
-    }
-    console.log('Book updated successfully:', updatedBook);
-    res.status(200).json(updatedBook);
-  } catch (err) {
-    console.error('Error updating book:', err);
-    res.status(500).json({ error: 'Error updating book' });
-  }
+module.exports = {
+  createBook,
+  getAllBooks,
+  deleteBook
 };
