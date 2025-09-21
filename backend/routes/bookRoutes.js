@@ -1,14 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const bookController = require("../controllers/bookController");
+const userController = require("../controllers/userController");
+const { authenticateToken, authorizeRole } = require("../middlewares/auth");
 
 // Crear libro
-router.post("/", bookController.createBook);
+router.post("/", authenticateToken, authorizeRole(["admin"]), bookController.createBook);
 
 // Obtener todos los libros
-router.get("/", bookController.getAllBooks);
+router.get("/", authenticateToken, authorizeRole(["user", "admin"]), bookController.getAllBooks);
 
 // Eliminar libro
-router.delete("/:id", bookController.deleteBook); // 👈 aquí debe existir
+router.delete("/:id", authenticateToken, authorizeRole(["admin"]), bookController.deleteBook);
+
+// Préstamos de libros
+router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook);
+router.get("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.getBorrowedBooks);
+
+// (opcional) Extender préstamo
+// router.put("/api/extend-loan/:bookId", authenticateToken, authorizeRole(["user","admin"]), userController.extendLoan);
 
 module.exports = router;

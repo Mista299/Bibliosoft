@@ -1,14 +1,46 @@
+import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import logo from "../../assets/Biblisoft-logo.png"
+
+const API_URL = import.meta.env.VITE_API_URL
+
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
-  const handleSubmit = (e) => {
+  const navigate = useNavigate()
+  
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("Email:", email, "Password:", password)
-    // aquí luego conectas con tu backend
+
+    try {
+      const res = await fetch(`${API_URL}/users/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // 👈 necesario para que se guarde la cookie
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || "Error en el login")
+        return
+      }
+
+      alert("Login exitoso ✅")
+      console.log("Usuario autenticado:", data)
+      
+      // Si el login fue exitoso redirigimos
+      navigate("/user-panel")
+
+      window.location.href = "/dashboard"
+    } catch (err) {
+      console.error("Error en login:", err)
+      alert("No se pudo conectar con el servidor")
+    }
   }
 
   return (

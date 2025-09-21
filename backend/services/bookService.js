@@ -1,23 +1,40 @@
 const Book = require('../models/bookModel');
 
-// Crear libro
-const createBook = async (bookData) => {
-  const book = new Book(bookData);
-  return await book.save();
-};
+class BookService {
+  static async create(book) {
+    const newBook = new Book(book);
+    await newBook.save();
+  }
 
-// Obtener todos los libros
-const getAllBooks = async () => {
-  return await Book.find();
-};
+  static async update(isbn, prop, value) {
+    const update = {};
+    update[prop] = value;
 
-// Eliminar libro
-const deleteBook = async (id) => {
-  return await Book.findByIdAndDelete(id);
-};
+    // Actualiza el libro con la propiedad dada
+    await Book.updateOne({ isbn: isbn }, { $set: update });
 
-module.exports = {
-  createBook,
-  getAllBooks,
-  deleteBook
-};
+    // Busca el libro actualizado y lo devuelve
+    const updatedBook = await Book.findOne({ isbn }).lean();
+    
+    // Verifica si el libro fue encontrado y actualizado
+    if (!updatedBook) {
+      throw new Error(`Book with ISBN ${isbn} not found`);
+    }
+
+    return updatedBook;
+  }
+  
+  static async findAll() {
+    return await Book.find().select('-_id -__v');
+  }
+  
+  static async deleteAll() {
+    await Book.deleteMany();
+  }
+
+  static async delete(isbn) {
+    await Book.deleteOne({ isbn: isbn });
+  }
+}
+
+module.exports = BookService;

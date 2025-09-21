@@ -10,8 +10,9 @@ const authenticateToken = (req, res, next) => {
     console.log("el token es (auth.js)", token)
 
     if (!token) {
-        return res.redirect('/api/login'); 
+        return res.status(401).json({ error: "No autenticado" });
     }
+
 
     try {
         const decoded = jwt.verify(token, TOKEN_KEY); // Reemplaza esto con tu clave secreta
@@ -19,7 +20,7 @@ const authenticateToken = (req, res, next) => {
         console.log("verificando el req.user.id (auth): ", req.user.id)//cel token fue codificado con el _id de la base de datos, por tanto req.user.id me devolvera es el _id
         next();
     } catch (error) {
-        return res.redirect('/api/login'); 
+        return res.status(401).json({ error: "Token inválido o expirado" });
     }
 };
 

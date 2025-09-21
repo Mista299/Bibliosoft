@@ -1,23 +1,34 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userController = require('../controllers/userController');
+const userController = require("../controllers/userController");
+const { authenticateToken, authorizeRole } = require("../middlewares/auth");
 
+// Registro e inicio de sesión
+router.post("/register", userController.registerUser);
+router.post("/login", userController.loginUser);
+router.post("/logout", userController.logOut);
 
-// Crear un nuevo usuario
-router.post('/users', userController.createUser);
+// Render de vistas
+router.get("/", (req, res) => res.render("login"));
+router.get("/login", (req, res) => {
+  res.json({ message: "Login page (frontend debería manejar esto)" });
+});
+router.get("/admin-panel", (req, res) => res.render("admin-panel"));
 
-// Registro de usuario (puede incluir opción para registrar administradores)
-router.post('/register', userController.registerUser);
-router.get('/', (req, res)=>{res.render('login')});
-router.post('/login', userController.loginUser);
-router.get('/login', (req, res)=>{res.render('login')});
+// Perfil de usuario autenticado
+router.get("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserName);
+router.get("/useremail", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserEmail);
 
+// Actualizaciones propias
+router.put("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.putName);
+router.put("/useremail", authenticateToken, authorizeRole(["user", "admin"]), userController.putEmail);
+router.put("/userpass", authenticateToken, authorizeRole(["user", "admin"]), userController.putPassword);
+router.put("/updatePassword", authenticateToken, authorizeRole(["user", "admin"]), userController.updatePassword);
 
-router.get('/admin-panel', (req, res)=>{res.render('admin-panel')});
-
-router.post('/logout', userController.logOut);
-
-// Obtener todos los usuarios
-router.get('/users', userController.getAllUsers);
+// Administración de usuarios (solo admin)
+router.get("/users", authenticateToken, authorizeRole(["admin"]), userController.getAllUsers);
+router.put("/users/:id/name", authenticateToken, authorizeRole(["admin"]), userController.updateName);
+router.put("/users/:id/email", authenticateToken, authorizeRole(["admin"]), userController.updateEmail);
+router.delete("/users/:id", authenticateToken, authorizeRole(["admin"]), userController.deleteUser);
 
 module.exports = router;
