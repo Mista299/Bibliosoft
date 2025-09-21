@@ -14,7 +14,7 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-purple-300">
+    <div className="bg-white rounded-2xl shadow-md p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-2">Register</h1>
         <p className="text-gray-600 text-center mb-6">

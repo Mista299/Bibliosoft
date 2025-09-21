@@ -1,42 +1,34 @@
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import logo from "../../assets/Biblisoft-logo.png"
+import Register from "../../components/Register" // 👈 importa el componente
 
 const API_URL = import.meta.env.VITE_API_URL
-
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showRegister, setShowRegister] = useState(false) // 👈 controlar modal
   const navigate = useNavigate()
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     try {
       const res = await fetch(`${API_URL}/users/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // 👈 necesario para que se guarde la cookie
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       })
 
       const data = await res.json()
-
       if (!res.ok) {
         alert(data.error || "Error en el login")
         return
       }
 
       alert("Login exitoso ✅")
-      console.log("Usuario autenticado:", data)
-      
-      // Si el login fue exitoso redirigimos
       navigate("/user-panel")
-
-      window.location.href = "/dashboard"
     } catch (err) {
       console.error("Error en login:", err)
       alert("No se pudo conectar con el servidor")
@@ -44,7 +36,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 relative">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-2">Login</h1>
         <p className="text-gray-600 text-center mb-6">
@@ -86,6 +78,7 @@ export default function Login() {
 
         <button
           type="button"
+          onClick={() => setShowRegister(true)} // 👈 abre modal
           className="w-full bg-[#6650A2] text-white py-2 rounded-md hover:bg-purple-500 transition"
         >
           Register
@@ -104,14 +97,25 @@ export default function Login() {
 
         {/* Logo */}
         <div className="mt-8 flex flex-col items-center">
-          <img
-            src={logo} // cámbialo por tu logo en /public
-            alt="BiblioSoft"
-            className="h-100"
-          />
+          <img src={logo} alt="BiblioSoft" className="h-100" />
           <p className="text-center text-xl font-serif mt-2">BiblioSoft</p>
         </div>
       </div>
+
+      {/* Modal con fondo desenfocado */}
+      {showRegister && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="relative w-full max-w-lg">
+            <button
+              onClick={() => setShowRegister(false)} // 👈 cierra modal
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm hover:bg-red-600"
+            >
+              ✕
+            </button>
+            <Register />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
