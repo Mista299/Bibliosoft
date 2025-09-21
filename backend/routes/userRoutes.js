@@ -9,11 +9,10 @@ router.post("/login", userController.loginUser);
 router.post("/logout", userController.logOut);
 
 // Render de vistas
-router.get("/", (req, res) => res.render("login"));
+
 router.get("/login", (req, res) => {
   res.json({ message: "Login page (frontend debería manejar esto)" });
 });
-router.get("/admin-panel", (req, res) => res.render("admin-panel"));
 
 // Perfil de usuario autenticado
 router.get("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserName);
