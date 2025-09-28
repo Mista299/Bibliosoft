@@ -25,9 +25,12 @@ router.put("/userpass", authenticateToken, authorizeRole(["user", "admin"]), use
 router.put("/updatePassword", authenticateToken, authorizeRole(["user", "admin"]), userController.updatePassword);
 
 // Administración de usuarios (solo admin)
-router.get("/users", authenticateToken, authorizeRole(["admin"]), userController.getAllUsers);
-router.put("/users/:id/name", authenticateToken, authorizeRole(["admin"]), userController.updateName);
-router.put("/users/:id/email", authenticateToken, authorizeRole(["admin"]), userController.updateEmail);
-router.delete("/users/:id", authenticateToken, authorizeRole(["admin"]), userController.deleteUser);
+router.get("/", authenticateToken, authorizeRole(["admin", "user"]), userController.getAllUsers);
+router.put("/:id/name", authenticateToken, authorizeRole(["admin"]), userController.updateName);
+router.put("/:id/email", authenticateToken, authorizeRole(["admin"]), userController.updateEmail);
+router.delete("/:id", authenticateToken, authorizeRole(["admin"]), userController.deleteUser);
+// 🚨 Endpoint temporal para crear un admin manualmente
+router.post("/create-admin-temp", userController.createUser);
+
 
 module.exports = router;

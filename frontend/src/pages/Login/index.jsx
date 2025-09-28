@@ -28,7 +28,7 @@ export default function Login() {
       }
 
       alert("Login exitoso ✅")
-      navigate("/user-panel")
+      navigate("/admin/books")
     } catch (err) {
       console.error("Error en login:", err)
       alert("No se pudo conectar con el servidor")

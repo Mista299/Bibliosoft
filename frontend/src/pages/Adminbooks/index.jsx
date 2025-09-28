@@ -19,7 +19,6 @@ export default function Adminbooks() {
   const [error, setError] = useState(null)
   const navigate = useNavigate();
 
-  // 🚀 Obtener libros del backend al montar   el componente
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -29,14 +28,22 @@ export default function Adminbooks() {
         });
 
         if (res.status === 401) {
-          // No autenticado → redirige al login
           navigate("/login", { state: { message: "No estás autorizado, inicia sesión" } });
+          return;
         } else if (res.status === 403) {
-          // Usuario autenticado pero sin permisos
           navigate("/", { state: { message: "Acceso denegado" } });
+          return;
         }
+
+        if (!res.ok) throw new Error("Error al cargar libros");
+
+        const data = await res.json();
+        setBooks(data); // ✅ Guardar libros en el estado
+        setLoading(false);
       } catch (err) {
         console.error("Error al obtener libros", err);
+        setError(err.message);
+        setLoading(false);
       }
     };
 
@@ -92,13 +99,13 @@ export default function Adminbooks() {
               <tbody>
                 {books.map((book) => (
                   <tr key={book.id} className="border-t">
-                    <td className="px-4 py-2">{book.titulo}</td>
-                    <td className="px-4 py-2">{book.autor}</td>
-                    <td className="px-4 py-2">{book.editorial}</td>
-                    <td className="px-4 py-2">{book.anio}</td>
+                    <td className="px-4 py-2">{book.title}</td>
+                    <td className="px-4 py-2">{book.author}</td>
+                    <td className="px-4 py-2">{book.publisher}</td>
+                    <td className="px-4 py-2">{book.publicationYear}</td>
                     <td className="px-4 py-2">{book.isbn}</td>
-                    <td className="px-4 py-2">{book.categoria}</td>
-                    <td className="px-4 py-2">{book.copias}</td>
+                    <td className="px-4 py-2">{book.genre}</td>
+                    <td className="px-4 py-2">{book.availableCopies}</td>
                     <td className="px-4 py-2 text-right">
                       <button className="p-2 hover:bg-gray-100 rounded-full">
                         <MoreVertical size={18} />

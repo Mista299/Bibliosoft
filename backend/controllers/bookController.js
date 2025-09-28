@@ -15,10 +15,9 @@ const createBook = async (req, res) => {
 const getAllBooks = async (req, res) => {
   try {
     const books = await bookService.getAllBooks();
-    res.json({ success: true, books });
-  } catch (error) {
-    console.error("Error obteniendo libros:", error.message);
-    res.status(500).json({ success: false, message: "Error obteniendo libros" });
+    res.json(books); // ✅ esto debe devolver un array
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 

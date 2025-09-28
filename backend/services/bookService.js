@@ -10,24 +10,25 @@ class BookService {
     const update = {};
     update[prop] = value;
 
-    // Actualiza el libro con la propiedad dada
     await Book.updateOne({ isbn: isbn }, { $set: update });
 
-    // Busca el libro actualizado y lo devuelve
     const updatedBook = await Book.findOne({ isbn }).lean();
-    
-    // Verifica si el libro fue encontrado y actualizado
     if (!updatedBook) {
       throw new Error(`Book with ISBN ${isbn} not found`);
     }
 
     return updatedBook;
   }
-  
-  static async findAll() {
-    return await Book.find().select('-_id -__v');
+
+  static async getAllBooks() {
+    try {
+      // ✅ Obtiene todos los libros sin los campos internos de MongoDB
+      return await Book.find().select("-_id -__v").lean();
+    } catch (error) {
+      throw new Error("Error fetching books: " + error.message);
+    }
   }
-  
+
   static async deleteAll() {
     await Book.deleteMany();
   }
