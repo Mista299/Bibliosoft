@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Search, Filter, MoreVertical } from "lucide-react"
+import { Search, Filter, Menu } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
 import ActionMenu from "../../components/ActionMenu"
 import { User, Book, ClipboardList } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL
-
 
 export default function Adminbooks() {
   const sidebarLinks = [
@@ -20,6 +19,8 @@ export default function Adminbooks() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [search, setSearch] = useState("")
+  const [sidebarOpen, setSidebarOpen] = useState(false) // ✨ NUEVO
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function Adminbooks() {
       try {
         const res = await fetch(`${API_URL}/books`, {
           method: "GET",
-          credentials: "include", // 🔑 importante: envía la cookie
+          credentials: "include",
         });
 
         if (res.status === 401) {
@@ -41,7 +42,7 @@ export default function Adminbooks() {
         if (!res.ok) throw new Error("Error al cargar libros");
 
         const data = await res.json();
-        setBooks(data); // ✅ Guardar libros en el estado
+        setBooks(data);
         setLoading(false);
       } catch (err) {
         console.error("Error al obtener libros", err);
@@ -64,9 +65,7 @@ export default function Adminbooks() {
         throw new Error("Error eliminando el libro");
       }
 
-      // Opcional: refrescar lista de libros
       setBooks((prev) => prev.filter((book) => book.isbn !== isbn));
-
       alert("Libro eliminado correctamente ✅");
     } catch (error) {
       console.error("Error eliminando libro:", error);
@@ -74,40 +73,71 @@ export default function Adminbooks() {
     }
   }
 
+  const filteredBooks = books.filter((book) =>
+    book.title.toLowerCase().includes(search.toLowerCase()) ||
+    book.author.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
     <div className="flex">
-      <Sidebar links={sidebarLinks} />
+      {/* Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar links={sidebarLinks} />
+      </div>
+
+      {/* Sidebar móvil */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
+          <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg z-50">
+            <Sidebar links={sidebarLinks} />
+          </div>
+        </div>
+      )}
 
       {/* Contenido principal */}
-      <div className="flex-1 p-6">
-        <h2 className="text-xl font-semibold mb-4">Books Panel</h2>
+      <div className="flex-1 p-4 md:p-6">
+        {/* Botón hamburguesa solo en móvil */}
+        <div className="flex items-center justify-between md:hidden mb-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu size={20} />
+          </Button>
+          <h2 className="text-lg font-semibold">Books Panel</h2>
+        </div>
 
-        {/* Estado de carga o error */}
+        {/* Desktop título */}
+        <h2 className="hidden md:block text-xl font-semibold mb-4">Books Panel</h2>
+
         {loading && <p className="text-gray-500">Cargando libros...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
 
         {/* Barra de búsqueda */}
-        <div className="flex items-center gap-2 mb-6">
-          <div className="relative w-full max-w-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
+          <div className="relative w-full sm:max-w-sm">
             <input
               type="text"
               placeholder="Search books..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
-          <Button variant="outline" className="flex gap-2">
+          <Button variant="outline" className="flex gap-2 w-full sm:w-auto">
             <Filter size={16} /> Filter
           </Button>
-          <Button className="bg-purple-600 text-white hover:bg-purple-700">
+          <Button className="bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto">
             Add Book
           </Button>
         </div>
 
-        {/* Tabla de libros */}
-        <Card className="overflow-hidden rounded-2xl shadow">
+        {/* Tabla desktop */}
+        <Card className="overflow-x-auto rounded-2xl shadow">
           <CardContent className="p-0">
-            <table className="w-full text-left border-collapse">
+            <table className="hidden md:table w-full text-left border-collapse">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-4 py-2">Título</th>
@@ -121,7 +151,7 @@ export default function Adminbooks() {
                 </tr>
               </thead>
               <tbody>
-                {books.map((book) => (
+                {filteredBooks.map((book) => (
                   <tr key={book.isbn} className="border-t">
                     <td className="px-4 py-2">{book.title}</td>
                     <td className="px-4 py-2">{book.author}</td>
@@ -132,23 +162,41 @@ export default function Adminbooks() {
                     <td className="px-4 py-2">{book.availableCopies}</td>
                     <td className="px-4 py-2 text-right">
                       <ActionMenu
-                        onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)} // Redirige a página de edición
-                        onDelete={() => handleDelete(book.isbn)} // Llama a tu función de eliminar
+                        onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)}
+                        onDelete={() => handleDelete(book.isbn)}
                       />
                     </td>
-
                   </tr>
                 ))}
-
-                {!loading && books.length === 0 && (
-                  <tr>
-                    <td colSpan="8" className="px-4 py-6 text-center text-gray-500">
-                      No hay libros disponibles
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
+
+            {/* Cards móvil */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredBooks.map((book) => (
+                <div key={book.isbn} className="border rounded-lg p-4 shadow-sm">
+                  <h3 className="font-semibold">{book.title}</h3>
+                  <p className="text-sm text-gray-600">{book.author}</p>
+                  <p className="text-sm">Editorial: {book.publisher}</p>
+                  <p className="text-sm">Año: {book.publicationYear}</p>
+                  <p className="text-sm">ISBN: {book.isbn}</p>
+                  <p className="text-sm">Categoría: {book.genre}</p>
+                  <p className="text-sm">Copias: {book.availableCopies}</p>
+                  <div className="flex justify-end mt-2">
+                    <ActionMenu
+                      onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)}
+                      onDelete={() => handleDelete(book.isbn)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {!loading && filteredBooks.length === 0 && (
+              <p className="px-4 py-6 text-center text-gray-500">
+                No se encontraron libros
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
