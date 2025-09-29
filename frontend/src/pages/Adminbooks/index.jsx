@@ -7,6 +7,8 @@ import ActionMenu from "../../components/ActionMenu"
 import { User, Book, ClipboardList } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL
+
 
 export default function Adminbooks() {
   const sidebarLinks = [
@@ -23,7 +25,7 @@ export default function Adminbooks() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/books", {
+        const res = await fetch(`${API_URL}/books`, {
           method: "GET",
           credentials: "include", // 🔑 importante: envía la cookie
         });
@@ -50,6 +52,27 @@ export default function Adminbooks() {
 
     fetchBooks();
   }, [navigate]);
+
+  async function handleDelete(isbn) {
+    try {
+      const response = await fetch(`${API_URL}/books/${isbn}`, {
+        method: "DELETE",
+        credentials: "include", 
+      });
+
+      if (!response.ok) {
+        throw new Error("Error eliminando el libro");
+      }
+
+      // Opcional: refrescar lista de libros
+      setBooks((prev) => prev.filter((book) => book.isbn !== isbn));
+
+      alert("Libro eliminado correctamente ✅");
+    } catch (error) {
+      console.error("Error eliminando libro:", error);
+      alert("❌ No se pudo eliminar el libro");
+    }
+  }
 
   return (
     <div className="flex">
@@ -99,7 +122,7 @@ export default function Adminbooks() {
               </thead>
               <tbody>
                 {books.map((book) => (
-                  <tr key={book.id} className="border-t">
+                  <tr key={book.isbn} className="border-t">
                     <td className="px-4 py-2">{book.title}</td>
                     <td className="px-4 py-2">{book.author}</td>
                     <td className="px-4 py-2">{book.publisher}</td>
@@ -110,7 +133,7 @@ export default function Adminbooks() {
                     <td className="px-4 py-2 text-right">
                       <ActionMenu
                         onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)} // Redirige a página de edición
-                        onDelete={() => handleDeleteBook(book.isbn)} // Llama a tu función de eliminar
+                        onDelete={() => handleDelete(book.isbn)} // Llama a tu función de eliminar
                       />
                     </td>
 
