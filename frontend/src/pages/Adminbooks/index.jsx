@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Search, Filter, MoreVertical } from "lucide-react"
 import Sidebar from "../../components/Sidebar"
+import ActionMenu from "../../components/ActionMenu"
 import { User, Book, ClipboardList } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 
@@ -107,10 +108,12 @@ export default function Adminbooks() {
                     <td className="px-4 py-2">{book.genre}</td>
                     <td className="px-4 py-2">{book.availableCopies}</td>
                     <td className="px-4 py-2 text-right">
-                      <button className="p-2 hover:bg-gray-100 rounded-full">
-                        <MoreVertical size={18} />
-                      </button>
+                      <ActionMenu
+                        onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)} // Redirige a página de edición
+                        onDelete={() => handleDeleteBook(book.isbn)} // Llama a tu función de eliminar
+                      />
                     </td>
+
                   </tr>
                 ))}
 

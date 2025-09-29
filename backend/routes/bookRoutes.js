@@ -11,7 +11,10 @@ router.post("/", authenticateToken, authorizeRole(["admin"]), bookController.cre
 router.get("/", authenticateToken, authorizeRole(["user", "admin"]), bookController.getAllBooks);
 
 // Eliminar libro
-router.delete("/:id", authenticateToken, authorizeRole(["admin"]), bookController.deleteBook);
+router.delete("/:isbn", authenticateToken, authorizeRole(["admin"]), bookController.deleteBook);
+
+//Editar libro
+router.put("/:isbn", authenticateToken, authorizeRole(["admin"]), bookController.updateBook);
 
 // Préstamos de libros
 router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook);

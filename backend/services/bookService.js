@@ -1,16 +1,16 @@
-const Book = require('../models/bookModel');
+const Book = require("../models/bookModel"); // 👈 IMPORTANTE
 
 class BookService {
   static async create(book) {
     const newBook = new Book(book);
     await newBook.save();
+    return newBook; // ✅ para que el controller reciba algo
   }
 
-  static async update(isbn, prop, value) {
-    const update = {};
-    update[prop] = value;
+  static async update(isbn, updates) {
+    // updates será un objeto { campo1: valor1, campo2: valor2, ... }
 
-    await Book.updateOne({ isbn: isbn }, { $set: update });
+    await Book.updateOne({ isbn: isbn }, { $set: updates });
 
     const updatedBook = await Book.findOne({ isbn }).lean();
     if (!updatedBook) {
@@ -21,20 +21,11 @@ class BookService {
   }
 
   static async getAllBooks() {
-    try {
-      // ✅ Obtiene todos los libros sin los campos internos de MongoDB
-      return await Book.find().select("-_id -__v").lean();
-    } catch (error) {
-      throw new Error("Error fetching books: " + error.message);
-    }
-  }
-
-  static async deleteAll() {
-    await Book.deleteMany();
+    return await Book.find().select("-_id -__v").lean();
   }
 
   static async delete(isbn) {
-    await Book.deleteOne({ isbn: isbn });
+    return await Book.deleteOne({ isbn: isbn });
   }
 }
 
