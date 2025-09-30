@@ -24,22 +24,23 @@ exports.createUser = async (req, res) => {
 
 // Definir el esquema de usuario
 const userSchema = z.object({
-    id: z.coerce.number().min(2, "El ID es requerido"), // convierte string → number
-    name: z.string().min(2, "El nombre es requerido"),
-    email: z.string().email("El correo electrónico no es válido"),
-    password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-    vpassword: z.string().min(8, "La verificación de contraseña debe tener al menos 8 caracteres")
-  }).refine(data => data.password === data.vpassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["vpassword"],
-  });
+  id: z.string().regex(/^\d+$/, "El ID debe ser numérico"), // ✅ string con solo números
+  name: z.string().min(2, "El nombre es requerido"),
+  email: z.string().email("El correo electrónico no es válido"),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  vpassword: z.string().min(8, "La verificación de contraseña debe tener al menos 8 caracteres")
+}).refine(data => data.password === data.vpassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["vpassword"],
+});
+
   
-  // Función para registrar usuario
+
 // Función para registrar usuario
 exports.registerUser = async (req, res) => {
     try {
         // Valida y analiza los datos del cuerpo de la solicitud
-        req.body.id = Number(req.body.id);
+        req.body.id = req.body.id;
         const userData = userSchema.parse(req.body);
         const { id, name, email, password } = userData;
 

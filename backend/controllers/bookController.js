@@ -3,7 +3,7 @@ const bookService = require('../services/bookService');
 // Crear libro
 const createBook = async (req, res) => {
   try {
-    const book = await bookService.create(req.body); // ✅ no createBook
+    const book = await bookService.create(req.body); 
     res.json({ success: true, message: "Libro creado correctamente", book });
   } catch (error) {
     console.error("Error creando libro:", error.message);
