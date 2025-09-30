@@ -6,6 +6,7 @@ import Sidebar from "../../components/Sidebar"
 import ActionMenu from "../../components/ActionMenu"
 import { User, Book, ClipboardList } from "lucide-react"
 import { useNavigate } from "react-router-dom";
+import EditBookDialog from "../../components/EditBookDialog"
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -23,6 +24,10 @@ export default function Adminbooks() {
   const [sidebarOpen, setSidebarOpen] = useState(false) // ✨ NUEVO
   const navigate = useNavigate();
 
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+
+  
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -30,7 +35,7 @@ export default function Adminbooks() {
           method: "GET",
           credentials: "include",
         });
-
+        
         if (res.status === 401) {
           navigate("/login", { state: { message: "No estás autorizado, inicia sesión" } });
           return;
@@ -40,7 +45,7 @@ export default function Adminbooks() {
         }
 
         if (!res.ok) throw new Error("Error al cargar libros");
-
+        
         const data = await res.json();
         setBooks(data);
         setLoading(false);
@@ -50,9 +55,33 @@ export default function Adminbooks() {
         setLoading(false);
       }
     };
-
+    
     fetchBooks();
   }, [navigate]);
+  
+  async function handleSaveBook(updatedBook) {
+    try {
+      const response = await fetch(`${API_URL}/books/${updatedBook.isbn}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedBook),
+        credentials: "include",
+      })
+
+      if (!response.ok) throw new Error("Error al actualizar el libro")
+
+      // Actualiza la lista en el estado
+      setBooks((prev) =>
+        prev.map((book) => (book.isbn === updatedBook.isbn ? updatedBook : book))
+      )
+
+      setIsEditOpen(false)
+      alert("✅ Libro actualizado con éxito")
+    } catch (error) {
+      console.error(error)
+      alert("❌ No se pudo actualizar el libro")
+    }
+  }
 
   async function handleDelete(isbn) {
     try {
@@ -162,7 +191,10 @@ export default function Adminbooks() {
                     <td className="px-4 py-2">{book.availableCopies}</td>
                     <td className="px-4 py-2 text-right">
                       <ActionMenu
-                        onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)}
+                        onEdit={() => {
+                          setSelectedBook(book)
+                          setIsEditOpen(true)
+                        }}
                         onDelete={() => handleDelete(book.isbn)}
                       />
                     </td>
@@ -184,7 +216,10 @@ export default function Adminbooks() {
                   <p className="text-sm">Copias: {book.availableCopies}</p>
                   <div className="flex justify-end mt-2">
                     <ActionMenu
-                      onEdit={() => navigate(`/admin/books/edit/${book.isbn}`)}
+                      onEdit={() => {
+                        setSelectedBook(book)
+                        setIsEditOpen(true)
+                      }}
                       onDelete={() => handleDelete(book.isbn)}
                     />
                   </div>
@@ -200,6 +235,13 @@ export default function Adminbooks() {
           </CardContent>
         </Card>
       </div>
+      <EditBookDialog
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        book={selectedBook}
+        onSave={handleSaveBook}
+      />
+    
     </div>
-  )
+)
 }
