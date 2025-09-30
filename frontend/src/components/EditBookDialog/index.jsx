@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 export default function EditBookDialog({ open, onClose, book, onSave }) {
@@ -23,6 +23,9 @@ export default function EditBookDialog({ open, onClose, book, onSave }) {
       <DialogContent className="max-w-2xl w-full">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Editar libro</DialogTitle>
+            <DialogDescription>
+              Modifica los datos del libro y guarda los cambios.
+            </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
