@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Menu, User, Book, ClipboardList } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Search, Filter, Menu } from "lucide-react"
-import Sidebar from "../../components/Sidebar"
-import ActionMenu from "../../components/ActionMenu"
-import { User, Book, ClipboardList } from "lucide-react"
-import { useNavigate } from "react-router-dom";
-import EditBookDialog from "../../components/EditBookDialog"
+import Sidebar from "@/components/Sidebar"
+import EditBookDialog from "@/components/EditBookDialog"
+import BooksTable from "@/components/books/BooksTable"
+import BooksList from "@/components/books/BooksList"
+import BookSearchBar from "@/components/books/BookSearchBar"
+import AlertBox from "@/components/ui/AlertBox";
+import { fetchBooks, updateBook, deleteBook } from "@/services/booksService"
+import { useNavigate } from "react-router-dom"
 
-
-const API_URL = import.meta.env.VITE_API_URL
-
-export default function Adminbooks() {
+export default function AdminBooks() {
   const sidebarLinks = [
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
@@ -19,98 +18,75 @@ export default function Adminbooks() {
   ]
 
   const [books, setBooks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [search, setSearch] = useState("")
-  const [sidebarOpen, setSidebarOpen] = useState(false) // ✨ NUEVO
-  const navigate = useNavigate();
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
-
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [alert, setAlert] = useState(null);
   
+
+  const navigate = useNavigate()
+
   useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const res = await fetch(`${API_URL}/books`, {
-          method: "GET",
-          credentials: "include",
-        });
-        
-        if (res.status === 401) {
-          navigate("/login", { state: { message: "No estás autorizado, inicia sesión" } });
-          return;
-        } else if (res.status === 403) {
-          navigate("/", { state: { message: "Acceso denegado" } });
-          return;
-        }
+    fetchBooks()
+      .then(setBooks)
+      .catch((err) => {
+        setError(err.message)
+        navigate("/login") // según el error podrías redirigir
+      })
+      .finally(() => setLoading(false))
+  }, [navigate])
 
-        if (!res.ok) throw new Error("Error al cargar libros");
-        
-        const data = await res.json();
-        setBooks(data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error al obtener libros", err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    
-    fetchBooks();
-  }, [navigate]);
-  
+  // 🔔 Auto-cierre de la alerta
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 4000); // 4 segundos
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+
   async function handleSaveBook(updatedBook) {
     try {
-      const response = await fetch(`${API_URL}/books/${updatedBook.isbn}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedBook),
-        credentials: "include",
-      })
-
-      if (!response.ok) throw new Error("Error al actualizar el libro")
-
-      // Actualiza la lista en el estado
-      setBooks((prev) =>
-        prev.map((book) => (book.isbn === updatedBook.isbn ? updatedBook : book))
-      )
-
+      await updateBook(updatedBook)
+      setBooks((prev) => prev.map((b) => (b.isbn === updatedBook.isbn ? updatedBook : b)))
       setIsEditOpen(false)
-      alert("✅ Libro actualizado con éxito")
-    } catch (error) {
-      console.error(error)
-      alert("❌ No se pudo actualizar el libro")
+      setAlert({ type: "success", message: "📚 Libro actualizado correctamente." }) // ✅ alerta de éxito
+    } catch (err) {
+      setAlert({ type: "error", message: "❌ No se pudo actualizar el libro." }) // ✅ alerta de error
     }
   }
 
-  async function handleDelete(isbn) {
+
+  async function handleDeleteBook(isbn) {
     try {
-      const response = await fetch(`${API_URL}/books/${isbn}`, {
-        method: "DELETE",
-        credentials: "include", 
-      });
-
-      if (!response.ok) {
-        throw new Error("Error eliminando el libro");
-      }
-
-      setBooks((prev) => prev.filter((book) => book.isbn !== isbn));
-      alert("Libro eliminado correctamente ✅");
-    } catch (error) {
-      console.error("Error eliminando libro:", error);
-      alert("❌ No se pudo eliminar el libro");
+      await deleteBook(isbn)
+      setBooks((prev) => prev.filter((b) => b.isbn !== isbn))
+      // 🔔 Mostrar alerta de éxito
+      setAlert({ type: "success", message: "Libro eliminado correctamente ✅" });
+    } catch (err) {
+      setAlert({ type: "error", message: "No se pudo eliminar el libro ❌" });
     }
   }
 
-  const filteredBooks = books.filter((book) =>
-    book.title.toLowerCase().includes(search.toLowerCase()) ||
-    book.author.toLowerCase().includes(search.toLowerCase())
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(search.toLowerCase()) ||
+      book.author.toLowerCase().includes(search.toLowerCase())
   )
+
 
   return (
     <div className="flex">
-      {/* Sidebar */}
+      {alert && (
+        <div className="fixed top-4 right-4 z-50 w-80">
+          <AlertBox type={alert.type} message={alert.message} />
+        </div>
+      )}
+
+      {/* Sidebar desktop */}
       <div className="hidden md:block">
         <Sidebar links={sidebarLinks} />
       </div>
@@ -124,125 +100,33 @@ export default function Adminbooks() {
         </div>
       )}
 
-      {/* Contenido principal */}
+      {/* Contenido */}
       <div className="flex-1 p-4 md:p-6">
-        {/* Botón hamburguesa solo en móvil */}
+        {/* Header móvil */}
         <div className="flex items-center justify-between md:hidden mb-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
+          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
           </Button>
           <h2 className="text-lg font-semibold">Books Panel</h2>
         </div>
 
-        {/* Desktop título */}
+        {/* Header desktop */}
         <h2 className="hidden md:block text-xl font-semibold mb-4">Books Panel</h2>
 
-        {loading && <p className="text-gray-500">Cargando libros...</p>}
+        {/* Search */}
+        <BookSearchBar search={search} setSearch={setSearch} />
+
+        {loading && <p className="text-gray-500">Cargando...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
 
-        {/* Barra de búsqueda */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
-          <div className="relative w-full sm:max-w-sm">
-            <input
-              type="text"
-              placeholder="Search books..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-            />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-          </div>
-          <Button variant="outline" className="flex gap-2 w-full sm:w-auto">
-            <Filter size={16} /> Filter
-          </Button>
-          <Button className="bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto">
-            Add Book
-          </Button>
-        </div>
+        {/* Table / Cards */}
+        <BooksTable books={filteredBooks} onEdit={(b) => { setSelectedBook(b); setIsEditOpen(true) }} onDelete={handleDeleteBook} />
+        <BooksList books={filteredBooks} onEdit={(b) => { setSelectedBook(b); setIsEditOpen(true) }} onDelete={handleDeleteBook} />
 
-        {/* Tabla desktop */}
-        <Card className="overflow-x-auto rounded-2xl shadow">
-          <CardContent className="p-0">
-            <table className="hidden md:table w-full text-left border-collapse">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2">Título</th>
-                  <th className="px-4 py-2">Autor</th>
-                  <th className="px-4 py-2">Editorial</th>
-                  <th className="px-4 py-2">Año</th>
-                  <th className="px-4 py-2">ISBN</th>
-                  <th className="px-4 py-2">Categoría</th>
-                  <th className="px-4 py-2">Copias</th>
-                  <th className="px-4 py-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBooks.map((book) => (
-                  <tr key={book.isbn} className="border-t">
-                    <td className="px-4 py-2">{book.title}</td>
-                    <td className="px-4 py-2">{book.author}</td>
-                    <td className="px-4 py-2">{book.publisher}</td>
-                    <td className="px-4 py-2">{book.publicationYear}</td>
-                    <td className="px-4 py-2">{book.isbn}</td>
-                    <td className="px-4 py-2">{book.genre}</td>
-                    <td className="px-4 py-2">{book.availableCopies}</td>
-                    <td className="px-4 py-2 text-right">
-                      <ActionMenu
-                        onEdit={() => {
-                          setSelectedBook(book)
-                          setIsEditOpen(true)
-                        }}
-                        onDelete={() => handleDelete(book.isbn)}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Modal */}
+        <EditBookDialog open={isEditOpen} onClose={() => setIsEditOpen(false)} book={selectedBook} onSave={handleSaveBook} />
 
-            {/* Cards móvil */}
-            <div className="md:hidden space-y-4 p-4">
-              {filteredBooks.map((book) => (
-                <div key={book.isbn} className="border rounded-lg p-4 shadow-sm">
-                  <h3 className="font-semibold">{book.title}</h3>
-                  <p className="text-sm text-gray-600">{book.author}</p>
-                  <p className="text-sm">Editorial: {book.publisher}</p>
-                  <p className="text-sm">Año: {book.publicationYear}</p>
-                  <p className="text-sm">ISBN: {book.isbn}</p>
-                  <p className="text-sm">Categoría: {book.genre}</p>
-                  <p className="text-sm">Copias: {book.availableCopies}</p>
-                  <div className="flex justify-end mt-2">
-                    <ActionMenu
-                      onEdit={() => {
-                        setSelectedBook(book)
-                        setIsEditOpen(true)
-                      }}
-                      onDelete={() => handleDelete(book.isbn)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {!loading && filteredBooks.length === 0 && (
-              <p className="px-4 py-6 text-center text-gray-500">
-                No se encontraron libros
-              </p>
-            )}
-          </CardContent>
-        </Card>
       </div>
-      <EditBookDialog
-        open={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        book={selectedBook}
-        onSave={handleSaveBook}
-      />
-    
     </div>
-)
+  )
 }
