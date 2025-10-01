@@ -9,6 +9,7 @@ import BookSearchBar from "@/components/books/BookSearchBar"
 import AlertBox from "@/components/ui/AlertBox";
 import { fetchBooks, updateBook, deleteBook } from "@/services/booksService"
 import { useNavigate } from "react-router-dom"
+import RegisterBook from "@/components/RegisterBook"
 
 export default function AdminBooks() {
   const sidebarLinks = [
@@ -25,6 +26,7 @@ export default function AdminBooks() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [alert, setAlert] = useState(null);
+  const [isOpen, setIsOpen] = useState(false)
   
 
   const navigate = useNavigate()
@@ -77,6 +79,13 @@ export default function AdminBooks() {
       book.author.toLowerCase().includes(search.toLowerCase())
   )
 
+  const handleAddBook = (data) => {
+    console.log("Libro añadido:", data);
+    // Aquí podrías llamar a tu backend
+    setIsOpen(false); // cerrar modal después de guardar
+  };
+
+
 
   return (
     <div className="flex">
@@ -111,10 +120,15 @@ export default function AdminBooks() {
         </div>
 
         {/* Header desktop */}
-        <h2 className="hidden md:block text-xl font-semibold mb-4">Books Panel</h2>
+        <h2 className="hidden md:block text-xl font-semibold mb-4">Panel de adminsitrador</h2>
 
         {/* Search */}
-        <BookSearchBar search={search} setSearch={setSearch} />
+        <BookSearchBar 
+          search={search} 
+          setSearch={setSearch} 
+          onAddBook={() => setIsOpen(true)} // 👈 ahora abre el modal
+        />
+
 
         {loading && <p className="text-gray-500">Cargando...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
@@ -126,6 +140,12 @@ export default function AdminBooks() {
         {/* Modal */}
         <EditBookDialog open={isEditOpen} onClose={() => setIsEditOpen(false)} book={selectedBook} onSave={handleSaveBook} />
 
+        {/* Modal Book */}
+        <RegisterBook 
+          open={isOpen} 
+          onClose={() => setIsOpen(false)} 
+          onSubmit={handleAddBook} 
+        />
       </div>
     </div>
   )
