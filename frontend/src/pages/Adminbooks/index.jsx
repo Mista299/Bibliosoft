@@ -7,7 +7,7 @@ import BooksTable from "@/components/books/BooksTable"
 import BooksList from "@/components/books/BooksList"
 import BookSearchBar from "@/components/books/BookSearchBar"
 import AlertBox from "@/components/ui/AlertBox";
-import { fetchBooks, updateBook, deleteBook } from "@/services/booksService"
+import { fetchBooks, updateBook, deleteBook, createBook } from "@/services/booksService"
 import { useNavigate } from "react-router-dom"
 import RegisterBook from "@/components/RegisterBook"
 
@@ -78,14 +78,19 @@ export default function AdminBooks() {
       book.title.toLowerCase().includes(search.toLowerCase()) ||
       book.author.toLowerCase().includes(search.toLowerCase())
   )
-
-  const handleAddBook = (data) => {
-    console.log("Libro añadido:", data);
-    // Aquí podrías llamar a tu backend
-    setIsOpen(false); // cerrar modal después de guardar
-  };
-
-
+  const handleAddBook = async (newBook) => {
+    try {
+      const data = await createBook(newBook)
+      const book = data.book ?? data // por si el backend devuelve directamente el objeto
+      setBooks((prev) => [...prev, book])
+      setIsOpen(false) // cerrar modal
+      setAlert({ type: "success", message: "📖 Libro añadido correctamente." })
+    } catch (err) {
+      console.error("createBook error:", err)
+      setAlert({ type: "error", message: err.message || "❌ No se pudo crear el libro." })
+      // opcional: no cerramos el modal para permitir corrección
+    }
+  }
 
   return (
     <div className="flex">

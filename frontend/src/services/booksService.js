@@ -21,3 +21,16 @@ export async function deleteBook(isbn) {
   const res = await fetch(`${API_URL}/books/${isbn}`, { method: "DELETE", credentials: "include" })
   if (!res.ok) throw new Error("Error eliminando libro")
 }
+
+export async function createBook(book) {
+  const res = await fetch(`${API_URL}/books`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(book),
+  })
+
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || "Error creando libro")
+  return data // { success, message, book } según tu backend
+}

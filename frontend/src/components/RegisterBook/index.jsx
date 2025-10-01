@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 const RegisterBook = ({ open, onClose, onSubmit }) => {
-  const [form, setForm] = useState({
+   const [form, setForm] = useState({
     isbn: "",
     title: "",
     author: "",
@@ -12,24 +12,35 @@ const RegisterBook = ({ open, onClose, onSubmit }) => {
     loanStatus: "",
     summary: "",
     availableCopies: "",
-  });
+  })
 
-  if (!open) return null; // 👈 no renderiza si está cerrado
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  if (!open) return null
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit(form);
-    }
-    // resetea form
+// dentro de RegisterBook.jsx (usa exactamente el resto de tu formulario como lo tienes)
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  setLoading(true)
+  setError("")
+
+  try {
+    // Llamamos al handler que viene del padre (AdminBooks)
+    // Asegúrate que AdminBooks devuelve/rechaza la promesa si hay error.
+    await onSubmit({
+      ...form,
+      isbn: String(form.isbn), // modelo espera String
+      publicationYear: Number(form.publicationYear),
+      availableCopies: Number(form.availableCopies),
+    })
+
+    // si todo OK limpiar y cerrar desde el padre (pero limpiamos aquí también)
     setForm({
       isbn: "",
       title: "",
@@ -41,9 +52,15 @@ const RegisterBook = ({ open, onClose, onSubmit }) => {
       loanStatus: "",
       summary: "",
       availableCopies: "",
-    });
-    onClose(); // cerrar modal después de añadir
-  };
+    })
+    // NOTA: el padre (handleAddBook) ya hace setIsOpen(false). Si quieres que el componente también cierre:
+    // onClose()
+  } catch (err) {
+    setError(err.message || "Error al crear el libro")
+  } finally {
+    setLoading(false)
+  }
+}
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50 bg-black/50">
@@ -214,9 +231,10 @@ const RegisterBook = ({ open, onClose, onSubmit }) => {
 
           <button
             type="submit"
-            className="w-full bg-purple-500 text-white p-3 rounded-lg font-semibold hover:bg-purple-600 transition mt-6"
+            disabled={loading}
+            className="w-full bg-purple-500 text-white p-3 rounded-lg font-semibold hover:bg-purple-600 transition mt-6 disabled:opacity-50"
           >
-            Añadir
+            {loading ? "Guardando..." : "Añadir"}
           </button>
         </form>
       </div>
