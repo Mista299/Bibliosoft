@@ -121,7 +121,7 @@ export default function AdminBooks() {
           <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
           </Button>
-          <h2 className="text-lg font-semibold">Books Panel</h2>
+          <h2 className="text-lg font-semibold">Panel de adminsitrador</h2>
         </div>
 
         {/* Header desktop */}

@@ -19,13 +19,13 @@ export default function Register() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/users/register`, {
+      const res = await fetch(`${API_URL}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: Number(cedula), // 👈 tu backend espera `id`
+          id: cedula, // 👈 tu backend espera `id`
           name: nombre,
           email,
           password,
@@ -62,7 +62,7 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
-          type="number"
+          type="text"
           placeholder="Identification number"
           value={cedula}
           onChange={(e) => setCedula(e.target.value)}

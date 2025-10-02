@@ -25,7 +25,7 @@ router.put("/userpass", authenticateToken, authorizeRole(["user", "admin"]), use
 router.put("/updatePassword", authenticateToken, authorizeRole(["user", "admin"]), userController.updatePassword);
 
 // Administración de usuarios (solo admin)
-router.get("/", authenticateToken, authorizeRole(["admin", "user"]), userController.getAllUsers);
+router.get("/", authenticateToken, authorizeRole(["admin"]), userController.getAllUsers);
 router.put("/:id/name", authenticateToken, authorizeRole(["admin"]), userController.updateName);
 router.put("/:id/email", authenticateToken, authorizeRole(["admin"]), userController.updateEmail);
 router.delete("/:id", authenticateToken, authorizeRole(["admin"]), userController.deleteUser);
