@@ -344,7 +344,7 @@ exports.getBorrowedBooks = async (req, res) => {
 
 exports.getBorrowedBooksByAdmin = async (req, res) => {
   try {
-    const { id } = req.body; // la cédula del usuario
+    const { id } = req.params; // 
 
     // Verificar que se haya enviado
     if (!id) {
@@ -371,16 +371,16 @@ exports.getBorrowedBooksByAdmin = async (req, res) => {
 exports.returnBook = async (req, res) => {
   try {
     const { isbn, id } = req.body;
-    console.log("isbn:", isbn)
-    console.log("id:", id)
-
     const result = await userService.returnBook(id, isbn);
     res.status(200).json({ success: true, message: result.message });
   } catch (error) {
     console.error("Error al devolver libro:", error.message);
-    res.status(500).json({ success: false, message: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: error.message || "Error del servidor" });
   }
 };
+
 
 exports.extendLoan = async (req, res) => {
   try {

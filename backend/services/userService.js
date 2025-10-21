@@ -208,7 +208,7 @@ exports.getUserBy_Id = async (_id) => {
 exports.getBorrowedBooks = async (userId) => {
   try {
     // Buscar por _id (que ahora es la cédula)
-    const user = await User.findById(userId, 'borrowedBooks');
+    const user = await User.findOne({ id: userId }); // si en tu schema el campo se llama "id"
 
     if (!user) {
       throw new Error('Usuario no encontrado');
@@ -229,38 +229,52 @@ exports.borrowBook = async (userId, bookIsbn) => {
   try {
     // 1️⃣ Buscar el libro por ISBN
     const book = await Book.findOne({ isbn: bookIsbn }).session(session);
-    if (!book || book.availableCopies <= 0) {
-      throw new Error('No hay copias disponibles del libro.');
+    if (!book) {
+      throw new Error("Libro no encontrado.");
     }
 
-    // 2️⃣ Restar una copia disponible
+    // 2️⃣ Validar disponibilidad
+    if (book.availableCopies <= 0) {
+      throw new Error("No hay copias disponibles del libro.");
+    }
+
+    // 3️⃣ Buscar usuario por su cédula (campo 'id')
+    const user = await User.findOne({ id: userId }).session(session);
+    if (!user) {
+      throw new Error("Usuario no encontrado.");
+    }
+
+    // 4️⃣ Restar una copia disponible del libro
     book.availableCopies -= 1;
     await book.save({ session });
 
-    // 3️⃣ Buscar al usuario por cédula (id)
-    const user = await User.findOne({ id: userId }).session(session);
-    if (!user) {
-      throw new Error('Usuario no encontrado.');
-    }
-
-    // 4️⃣ Agregar el libro al array de libros prestados del usuario
+    // 5️⃣ Agregar el préstamo al usuario
     user.borrowedBooks.push({
       bookId: book._id.toString(),
-      isbn: book.isbn,             // 👈 ahora se guarda el ISBN también
-      title: book.title
+      isbn: book.isbn,
+      title: book.title,
+      borrowedDate: new Date(),
+      returnDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 días después
+      status: "activo",
+      extensionCount: 0
     });
 
     await user.save({ session });
 
-    // 5️⃣ Confirmar la transacción
+    // 6️⃣ Confirmar la transacción
     await session.commitTransaction();
     console.log(`📚 Libro "${book.title}" prestado al usuario con cédula ${userId}`);
-    return book;
+
+    return {
+      success: true,
+      message: "Libro prestado correctamente.",
+      borrowedBook: { title: book.title, isbn: book.isbn }
+    };
 
   } catch (error) {
     await session.abortTransaction();
-    console.error('Error al prestar el libro:', error.message);
-    throw error;
+    console.error("❌ Error al prestar el libro:", error.message);
+    throw new Error("Error al prestar el libro: " + error.message);
   } finally {
     session.endSession();
   }

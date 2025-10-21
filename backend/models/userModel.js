@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 
 const borrowedBookSchema = new Schema({
   bookId: { type: String, required: true },
-  isbn: { type: String, required: true },
+  isbn: { type: String, required: false },
   title: { type: String, required: true },
   borrowedDate: { type: Date, default: Date.now },
   returnDate: { 

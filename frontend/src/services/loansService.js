@@ -34,23 +34,53 @@ export const returnBook = async (id, isbn) => {
   try {
     const response = await fetch(`${API_URL}/users/returnBook`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ id, isbn }),
+    });
+
+    const text = await response.text();
+    console.log("🔍 Respuesta cruda del backend:", text);
+
+    // Verificamos si es JSON antes de parsear
+    if (text.startsWith("<!DOCTYPE")) {
+      throw new Error("El servidor devolvió HTML en lugar de JSON. Revisa la ruta o el backend.");
+    }
+
+    const data = JSON.parse(text);
+
+    if (!response.ok) {
+      throw new Error(data.message || "Error al devolver el libro");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en returnBook:", error);
+    throw error;
+  }
+};
+
+export const fetchBorrowedBooks = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/users/borrowBookA/${id}`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id, isbn }),
       credentials: "include",
-
     });
 
+    // Validar respuesta del backend
+    const data = await response.json();
+    console.log("📘 Datos recibidos del backend:", data);
+
     if (!response.ok) {
-      // Obtener el mensaje de error del backend
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error al devolver el libro");
+      throw new Error(data.message || "Error al obtener los préstamos del usuario");
     }
 
-    // Retornar el resultado (mensaje de éxito)
-    return await response.json();
-  } catch (err) {
-    throw new Error(err.message);
+    return data;
+  } catch (error) {
+    console.error("Error en fetchBorrowedBooks:", error);
+    throw error;
   }
 };
