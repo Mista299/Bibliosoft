@@ -29,3 +29,28 @@ export const extendLoan = async (bookId) => {
 
   return res.json();
 };
+
+export const returnBook = async (id, isbn) => {
+  try {
+    const response = await fetch(`${API_URL}/users/returnBook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, isbn }),
+      credentials: "include",
+
+    });
+
+    if (!response.ok) {
+      // Obtener el mensaje de error del backend
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error al devolver el libro");
+    }
+
+    // Retornar el resultado (mensaje de éxito)
+    return await response.json();
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};

@@ -9,6 +9,7 @@ import BookSearchBar from "@/components/books/BookSearchBar";
 import AlertBox from "@/components/ui/AlertBox";
 import { fetchBooks, updateBook, deleteBook, createBook } from "@/services/booksService";
 import { useNavigate } from "react-router-dom";
+import { RotateCcw } from "lucide-react";
 import RegisterBook from "@/components/RegisterBook";
 
 export default function AdminBooks() {
@@ -16,6 +17,7 @@ export default function AdminBooks() {
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
+    { name: "Devoluciones", path: "/admin/returns", icon: RotateCcw },
   ];
 
   const [books, setBooks] = useState([]);
