@@ -15,7 +15,6 @@ const borrowedBookSchema = new Schema({
   },
   extensionCount: { type: Number, default: 0 },
 
-  // ✅ Nuevos campos
   actualReturnDate: { type: Date, default: null },
   status: { 
     type: String, 

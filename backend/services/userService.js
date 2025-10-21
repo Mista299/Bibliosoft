@@ -280,35 +280,41 @@ exports.getLoanByBookId = async (userId, bookId) => {
     }
 }
 
-// Función para extender el préstamo
-exports.extendLoan = async (userId, bookId) => {
-    const user = await User.findOne({ _id: userId, 'borrowedBooks.bookId': bookId }, { 'borrowedBooks.$': 1 }).exec();
-    
-    if (!user || !user.borrowedBooks.length) {
-        throw new Error('Préstamo no encontrado');
-    }
+exports.extendLoanByCedula = async (cedula, isbn) => {
+  try {
+    const user = await User.findOne({ id: cedula });
+    if (!user) throw new Error('Usuario no encontrado');
 
-    const loan = user.borrowedBooks[0]; // Asume que solo hay un préstamo con el bookId proporcionado
-
-    // Verificar el número de extensiones
-    if (loan.extensionCount >= 2) {
-        throw new Error('Límite de extensiones alcanzado');
-    }
-
-    // Ampliar el plazo del préstamo
-    loan.returnDate = new Date(loan.returnDate.getTime() + 15 * 24 * 60 * 60 * 1000);
-    loan.extensionCount = (loan.extensionCount || 0) + 1; // Incrementar el conteo de extensiones
-
-    // Guardar el usuario actualizado
-    await User.updateOne(
-        { _id: userId, 'borrowedBooks.bookId': bookId },
-        { $set: { 'borrowedBooks.$.returnDate': loan.returnDate, 'borrowedBooks.$.extensionCount': loan.extensionCount } }
+    const loan = user.borrowedBooks.find(
+      (b) => b.isbn === isbn && b.status === 'activo'
     );
 
-    return loan;
-}
+    if (!loan) throw new Error('Préstamo activo no encontrado o ya devuelto');
+    if ((loan.extensionCount || 0) >= 2)
+      throw new Error('Límite máximo de extensiones alcanzado');
 
-// userService.js
+    // Extender el plazo
+    const nuevaFecha = new Date(loan.returnDate);
+    nuevaFecha.setDate(nuevaFecha.getDate() + 15);
+
+    loan.returnDate = nuevaFecha;
+    loan.extensionCount = (loan.extensionCount || 0) + 1;
+
+    await user.save();
+
+    return {
+      message: 'Préstamo extendido exitosamente',
+      isbn: loan.isbn,
+      newReturnDate: loan.returnDate,
+      extensionCount: loan.extensionCount,
+    };
+  } catch (error) {
+    console.error('Error en extendLoanByCedula:', error);
+    throw error;
+  }
+};
+
+
 exports.returnBook = async (userId, isbn) => {
   try {
     const user = await User.findOne({ id: userId });

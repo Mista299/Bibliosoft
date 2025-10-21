@@ -73,7 +73,7 @@ exports.loginUser = async (req, res) => {
             // Genera un token JWT
             console.log("verificando el TOKEN_Key en el controlador: ", TOKEN_KEY)
             const token = jwt.sign(
-                { id: user._id, role: user.role },
+                { id: user._id, cc: user.id, role: user.role },
                 TOKEN_KEY,
                 { expiresIn: '1h' }
             );
@@ -370,7 +370,6 @@ exports.getBorrowedBooksByAdmin = async (req, res) => {
   }
 };
 
-
 exports.returnBook = async (req, res) => {
   try {
     const { isbn, id } = req.body;
@@ -384,3 +383,20 @@ exports.returnBook = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.extendLoan = async (req, res) => {
+  try {
+    const { isbn } = req.body;
+    const cedula = req.user.cc; // ← ahora viene directamente del token
+
+    console.log('extendLoan - cedula del usuario:', cedula);
+    console.log('extendLoan - isbn recibido:', isbn);
+
+    const result = await userService.extendLoanByCedula(cedula, isbn);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Controller extendLoan error:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+

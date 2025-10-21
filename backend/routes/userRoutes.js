@@ -8,12 +8,6 @@ router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 router.post("/logout", userController.logOut);
 
-// Render de vistas
-
-router.get("/login", (req, res) => {
-  res.json({ message: "Login page (frontend debería manejar esto)" });
-});
-
 // Préstamos de libros
 router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook);
 router.get("/borrowBook", authenticateToken, authorizeRole(["admin", "user"]), userController.getBorrowedBooks);
@@ -21,6 +15,11 @@ router.get("/borrowBookUser", authenticateToken, authorizeRole(["admin"]), userC
 
 //  Devolver libro
 router.post("/returnBook", authenticateToken, authorizeRole(["admin"]), userController.returnBook);
+
+
+router.post("/extendLoan", authenticateToken, authorizeRole(["admin", "user"]), userController.extendLoan);
+
+
 
 
 // Perfil de usuario autenticado
