@@ -3,7 +3,7 @@ import { Menu, BookOpen, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import AlertBox from "@/components/ui/AlertBox";
-import { fetchUserLoans } from "@/services/loansService";
+import { fetchUserLoans, extendLoan } from "@/services/loansService";
 import { useNavigate } from "react-router-dom";
 
 export default function UserLoansPanel() {
@@ -20,24 +20,25 @@ export default function UserLoansPanel() {
 
   const navigate = useNavigate();
 
-  // 🟣 Cargar préstamos del usuario
+  // 🔄 Cargar préstamos
+  const loadLoans = async () => {
+    try {
+      const data = await fetchUserLoans();
+      setLoans(data?.books ?? []);
+    } catch (err) {
+      const msg = err?.message || String(err);
+      setError(msg);
+      if (/401|unauthori|unauth/i.test(msg)) {
+        navigate("/login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchUserLoans()
-      .then((data) => {
-        // Aceptar tanto un array directo como { loans: [...] }
-        const list = Array.isArray(data) ? data : data?.loans ?? [];
-        setLoans(list);
-      })
-      .catch((err) => {
-        const msg = err?.message || String(err);
-        setError(msg);
-        // Solo redirigir si parece un problema de autenticación
-        if (/401|unauthori|unauth/i.test(msg)) {
-          navigate("/login");
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [navigate]);
+    loadLoans();
+  }, []);
 
   // 🔔 Auto-cierre de alertas
   useEffect(() => {
@@ -47,47 +48,32 @@ export default function UserLoansPanel() {
     }
   }, [alert]);
 
-  // 🔒 Bloquear scroll cuando el sidebar móvil está abierto
+  // 🔒 Bloquear scroll cuando sidebar móvil abierto
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "";
     return () => (document.body.style.overflow = "");
   }, [sidebarOpen]);
 
-  // ⌨️ Cerrar con tecla ESC
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape" && sidebarOpen) setSidebarOpen(false);
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [sidebarOpen]);
+  const isOverdue = (returnDate) => returnDate && new Date(returnDate) < new Date();
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString() : "-");
 
-  // 🧮 Separar préstamos actuales e históricos
-  const currentLoans = loans.filter((loan) => !loan.returnDate);
-  const pastLoans = loans.filter((loan) => loan.returnDate);
+  const activeLoans = loans.filter((loan) => loan.status === "activo");
+  const pastLoans = loans.filter((loan) => loan.status !== "activo");
 
-  // ⚠️ Función auxiliar para detectar atraso
-  const isOverdue = (dueDate) => {
-    if (!dueDate) return false;
+  // 🔧 Extender préstamo
+  const handleExtendLoan = async (bookId) => {
     try {
-      return new Date(dueDate) < new Date();
-    } catch (e) {
-      return false;
-    }
-  };
-
-  const formatDate = (d) => {
-    if (!d) return "-";
-    try {
-      return new Date(d).toLocaleDateString();
-    } catch (e) {
-      return String(d);
+      const response = await extendLoan(bookId);
+      setAlert({ type: "success", message: response.message || "Préstamo extendido" });
+      await loadLoans(); // refrescar lista
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
     }
   };
 
   return (
     <div className="flex">
-      {/* 🔔 Alertas */}
+      {/* Alertas */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-80">
           <AlertBox
@@ -98,12 +84,12 @@ export default function UserLoansPanel() {
         </div>
       )}
 
-      {/* 🧭 Sidebar Desktop */}
+      {/* Sidebar desktop */}
       <div className="hidden md:flex">
         <Sidebar links={sidebarLinks} />
       </div>
 
-      {/* 📱 Sidebar móvil */}
+      {/* Sidebar móvil */}
       <div
         className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
           sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -112,84 +98,195 @@ export default function UserLoansPanel() {
         <div
           className="absolute inset-0 bg-black/50"
           onClick={() => setSidebarOpen(false)}
-        ></div>
-
+        />
         <div
           className={`absolute left-0 top-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <Sidebar links={sidebarLinks} isMobile={true} onClose={() => setSidebarOpen(false)} />
+          <Sidebar
+            links={sidebarLinks}
+            isMobile={true}
+            onClose={() => setSidebarOpen(false)}
+          />
         </div>
       </div>
 
-      {/* 📚 Contenido principal */}
+      {/* Contenido principal */}
       <div className="flex-1 p-4 md:p-6 bg-gray-50 min-h-screen">
         {/* Header móvil */}
         <div className="flex items-center justify-between md:hidden mb-4">
-          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu size={20} />
           </Button>
           <h2 className="text-lg font-semibold">Mis préstamos</h2>
         </div>
 
         {/* Header desktop */}
-        <h2 className="hidden md:block text-xl font-semibold mb-6">Panel de Usuarios</h2>
+        <h2 className="hidden md:block text-xl font-semibold mb-6">
+          Panel de préstamos
+        </h2>
 
         {loading && <p className="text-gray-500">Cargando tus préstamos...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
 
-        {/* 🟢 Libros actualmente prestados */}
+        {/* Préstamos activos */}
         <section className="mb-8">
-          <h3 className="text-lg font-semibold mb-3">Libros actualmente prestados</h3>
-          {currentLoans.length === 0 ? (
-            <p className="text-gray-500">No tienes préstamos activos.</p>
-          ) : (
-            <div className="grid gap-4">
-              {currentLoans.map((loan) => (
+          <h3 className="text-lg font-semibold mb-3">Préstamos actuales</h3>
+
+          {/* Tarjetas móviles */}
+          <div className="grid gap-4 md:hidden">
+            {activeLoans.length === 0 ? (
+              <p className="text-gray-500">No tienes préstamos activos.</p>
+            ) : (
+              activeLoans.map((loan) => (
                 <div
-                  key={loan.id ?? loan._id}
+                  key={loan.bookId}
                   className={`p-4 bg-white rounded-2xl shadow-md border ${
-                    isOverdue(loan.dueDate) ? "border-red-400" : "border-gray-200"
+                    isOverdue(loan.returnDate)
+                      ? "border-red-400"
+                      : "border-gray-200"
                   }`}
                 >
-                  <h4 className="font-medium">{loan.bookTitle}</h4>
-                  <p className="text-sm text-gray-600">Autor: {loan.bookAuthor}</p>
-                  <p className="text-sm text-gray-600">Fecha de préstamo: {formatDate(loan.loanDate)}</p>
-                  <p className="text-sm text-gray-600">Fecha de devolución: {formatDate(loan.dueDate)}</p>
-                  {isOverdue(loan.dueDate) && (
+                  <h4 className="font-medium">{loan.title}</h4>
+                  <p className="text-sm text-gray-600">ISBN: {loan.isbn}</p>
+                  <p className="text-sm text-gray-600">
+                    Fecha de préstamo: {formatDate(loan.borrowedDate)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Fecha de devolución: {formatDate(loan.returnDate)}
+                  </p>
+                  {isOverdue(loan.returnDate) && (
                     <span className="text-red-500 font-semibold text-sm">
                       ⚠️ Préstamo atrasado
                     </span>
                   )}
+                  <Button
+                    size="sm"
+                    className="bg-[#9810FA] text-white hover:opacity-90"
+                    onClick={() => handleExtendLoan(loan.bookId)}
+                  >
+                    Extender
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
+
+          {/* Tabla escritorio */}
+          <div className="hidden md:block overflow-x-auto">
+            {activeLoans.length === 0 ? (
+              <p className="text-gray-500">No tienes préstamos activos.</p>
+            ) : (
+              <table className="w-full bg-white rounded-xl shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 text-left">Título</th>
+                    <th className="p-3 text-left">ISBN</th>
+                    <th className="p-3 text-left">Fecha préstamo</th>
+                    <th className="p-3 text-left">Fecha devolución</th>
+                    <th className="p-3 text-left">Estado</th>
+                    <th className="p-3 text-left">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeLoans.map((loan) => (
+                    <tr
+                      key={loan.bookId}
+                      className={`border-b ${
+                        isOverdue(loan.returnDate) ? "bg-red-50" : ""
+                      }`}
+                    >
+                      <td className="p-3">{loan.title}</td>
+                      <td className="p-3">{loan.isbn}</td>
+                      <td className="p-3">{formatDate(loan.borrowedDate)}</td>
+                      <td className="p-3">{formatDate(loan.returnDate)}</td>
+                      <td className="p-3 font-medium">
+                        {isOverdue(loan.returnDate) ? "Atrasado ⚠️" : "Activo"}
+                      </td>
+                      <td className="p-3">
+                        <Button
+                          size="sm"
+                          className="bg-[#9810FA] text-white hover:opacity-90"
+                          onClick={() => handleExtendLoan(loan.bookId)}
+                        >
+                          Extender
+                        </Button>
+
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </section>
 
-        {/* 🔵 Historial de préstamos */}
+        {/* Historial */}
         <section>
-          <h3 className="text-lg font-semibold mb-3">Historial de préstamos anteriores</h3>
-          {pastLoans.length === 0 ? (
-            <p className="text-gray-500">Aún no tienes historial de préstamos.</p>
-          ) : (
-            <div className="grid gap-4">
-              {pastLoans.map((loan) => (
+          <h3 className="text-lg font-semibold mb-3">Historial de préstamos</h3>
+
+          {/* Tarjetas móviles */}
+          <div className="grid gap-4 md:hidden">
+            {pastLoans.length === 0 ? (
+              <p className="text-gray-500">No tienes historial de préstamos.</p>
+            ) : (
+              pastLoans.map((loan) => (
                 <div
-                  key={loan.id ?? loan._id}
+                  key={loan.bookId}
                   className="p-4 bg-white rounded-2xl shadow-sm border border-gray-200"
                 >
-                  <h4 className="font-medium">{loan.bookTitle}</h4>
-                  <p className="text-sm text-gray-600">Autor: {loan.bookAuthor}</p>
-                  <p className="text-sm text-gray-600">Fecha de préstamo: {formatDate(loan.loanDate)}</p>
+                  <h4 className="font-medium">{loan.title}</h4>
+                  <p className="text-sm text-gray-600">ISBN: {loan.isbn}</p>
                   <p className="text-sm text-gray-600">
-                    Devuelto el: <span className="font-medium">{formatDate(loan.returnDate)}</span>
+                    Fecha de préstamo: {formatDate(loan.borrowedDate)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Devuelto el: {formatDate(loan.actualReturnDate)}
+                  </p>
+                  <p className="text-sm font-medium">
+                    Estado: {loan.status === "activo" ? "Activo" : "Devuelto"}
                   </p>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
+
+          {/* Tabla escritorio */}
+          <div className="hidden md:block overflow-x-auto">
+            {pastLoans.length === 0 ? (
+              <p className="text-gray-500">No tienes historial de préstamos.</p>
+            ) : (
+              <table className="w-full bg-white rounded-xl shadow-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 text-left">Título</th>
+                    <th className="p-3 text-left">ISBN</th>
+                    <th className="p-3 text-left">Fecha préstamo</th>
+                    <th className="p-3 text-left">Fecha devolución</th>
+                    <th className="p-3 text-left">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pastLoans.map((loan) => (
+                    <tr key={loan.bookId} className="border-b">
+                      <td className="p-3">{loan.title}</td>
+                      <td className="p-3">{loan.isbn}</td>
+                      <td className="p-3">{formatDate(loan.borrowedDate)}</td>
+                      <td className="p-3">{formatDate(loan.actualReturnDate)}</td>
+                      <td className="p-3 font-medium">
+                        {loan.status === "activo" ? "Activo" : "Devuelto"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </section>
       </div>
     </div>
