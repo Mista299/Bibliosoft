@@ -165,13 +165,13 @@ export default function UserLoansPanel() {
                       ⚠️ Préstamo atrasado
                     </span>
                   )}
-                  <Button
-                    size="sm"
-                    className="bg-[#9810FA] text-white hover:opacity-90"
-                    onClick={() => handleExtendLoan(loan.bookId)}
-                  >
-                    Extender
-                  </Button>
+                    <Button
+                      size="sm"
+                      className="bg-[#9810FA] text-white hover:opacity-90"
+                      onClick={() => handleExtendLoan(loan.bookId)}
+                    >
+                      Extender
+                    </Button>
                 </div>
               ))
             )}

@@ -315,50 +315,46 @@ exports.extendLoanByCedula = async (cedula, isbn) => {
   }
 };
 
-
 exports.returnBook = async (userId, isbn) => {
   try {
     const user = await User.findOne({ id: userId });
     if (!user) {
       throw new Error("Usuario no encontrado");
     }
-
-    // Buscar el préstamo activo del libro
     const borrowedBook = user.borrowedBooks.find(
-      (book) => book.isbn === isbn && book.status === "activo"
+      (book) => book.isbn === isbn && book.status !== "entregado"
     );
 
     if (!borrowedBook) {
-      throw new Error("Este libro no está actualmente prestado.");
+      throw new Error("No se encontró un préstamo activo o atrasado con ese ISBN para este usuario.");
     }
 
-    // Registrar fecha de devolución
     borrowedBook.actualReturnDate = new Date();
 
-    // Evaluar si fue atrasado o entregado a tiempo
-    if (borrowedBook.actualReturnDate > borrowedBook.returnDate) {
-      borrowedBook.status = "atrasado";
-    } else {
-      borrowedBook.status = "entregado";
-    }
+    borrowedBook.status =
+      borrowedBook.actualReturnDate > borrowedBook.returnDate ? "atrasado" : "entregado";
 
-    // Actualizar disponibilidad del libro en la colección "books"
     const Book = require("../models/bookModel");
     const book = await Book.findOne({ isbn });
     if (book) {
-      book.availableCopies += 1; // ✅ sumamos una copia disponible
+      book.availableCopies += 1;
       await book.save();
     }
 
-    // Guardar cambios en el usuario
     await user.save();
 
-    return { success: true, borrowedBooks: user.borrowedBooks };
+    return {
+      success: true,
+      message: `Libro devuelto correctamente (${borrowedBook.status}).`,
+      borrowedBooks: user.borrowedBooks,
+    };
   } catch (error) {
     console.error("Error al devolver el libro:", error);
-    throw new Error("No se pudo procesar la devolución.");
+    throw new Error(error.message || "No se pudo procesar la devolución.");
   }
 };
+
+
 
 // // Extender el plazo del préstamo
 // exports.extendLoan = async (userId, loanId, newReturnDate) => {
