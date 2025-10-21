@@ -1,0 +1,9 @@
+
+{
+  "id": "10000001",
+  "name": "Michael",
+  "email": "michaelpk1999@gmail.com",
+  "password": "mistaadmin123+",
+  "role": "admin",
+  "borrowedBooks": []
+}

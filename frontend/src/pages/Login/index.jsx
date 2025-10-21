@@ -1,18 +1,65 @@
-import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
 import logo from "../../assets/Biblisoft-logo.png"
+import Register from "../../components/Register"
+import AlertBox from "../../components/ui/AlertBox"
+
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showRegister, setShowRegister] = useState(false)
+  const [alert, setAlert] = useState(null)
+  const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  // Auto-cierre de la alerta
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [alert])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("Email:", email, "Password:", password)
-    // aquí luego conectas con tu backend
+    try {
+      const res = await fetch(`${API_URL}/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        setAlert({ type: "error", message: data.error || "Error en el login ❌" })
+        return
+      }
+
+      setAlert({ type: "success", message: "Inicio de sesión exitoso ✅" })
+
+      // Pequeña pausa para mostrar alerta antes de navegar
+      setTimeout(() => navigate("/admin/books"), 1000)
+    } catch (err) {
+      console.error("Error en login:", err)
+      setAlert({ type: "error", message: "No se pudo conectar con el servidor ❌" })
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 relative">
+      {/* 🔔 Alerta flotante */}
+      {alert && (
+        <div className="fixed top-4 right-4 z-50 w-80">
+          <AlertBox
+            type={alert.type}
+            message={alert.message}
+            onClose={() => setAlert(null)}
+          />
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-2">Login</h1>
         <p className="text-gray-600 text-center mb-6">
@@ -54,6 +101,7 @@ export default function Login() {
 
         <button
           type="button"
+          onClick={() => setShowRegister(true)}
           className="w-full bg-[#6650A2] text-white py-2 rounded-md hover:bg-purple-500 transition"
         >
           Register
@@ -72,14 +120,25 @@ export default function Login() {
 
         {/* Logo */}
         <div className="mt-8 flex flex-col items-center">
-          <img
-            src={logo} // cámbialo por tu logo en /public
-            alt="BiblioSoft"
-            className="h-100"
-          />
+          <img src={logo} alt="BiblioSoft" className="h-100" />
           <p className="text-center text-xl font-serif mt-2">BiblioSoft</p>
         </div>
       </div>
+
+      {/* Modal de registro */}
+      {showRegister && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="relative w-full max-w-lg">
+            <button
+              onClick={() => setShowRegister(false)}
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 text-sm hover:bg-red-600"
+            >
+              ✕
+            </button>
+            <Register />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
