@@ -314,17 +314,15 @@ exports.borrowBook = async (req, res) => {
     const requesterId = req.user.id; // ID del usuario autenticado
     const role = req.user.role;
 
-    // Determinar el ID real del usuario al que se le presta
-    const targetUserId = role === "admin" && userId ? userId : requesterId;
 
-    console.log(`📚 Solicitante (${role}): ${requesterId} → Préstamo para usuario: ${targetUserId}, libro: ${isbn}`);
+    console.log(`📚 Solicitante (${role}): ${requesterId} → Préstamo para usuario: ${userId}, libro: ${isbn}`);
 
     try {
-        const book = await userService.borrowBook(targetUserId, isbn);
+        const book = await userService.borrowBook(userId, isbn);
         res.status(200).json({
             message: 'Libro prestado exitosamente',
             book,
-            assignedTo: targetUserId
+            assignedTo: userId
         });
     } catch (error) {
         res.status(500).json({ error: `Error al prestar el libro: ${error.message}` });
