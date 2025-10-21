@@ -310,23 +310,77 @@ exports.deleteAllUsers = async (req, res) => {
 };
 
 exports.borrowBook = async (req, res) => {
-    const { id, isbn } = req.body;
-    console.log("recibiendo datos: ", id, isbn)
+    const { isbn, userId } = req.body;
+    const requesterId = req.user.id; // ID del usuario autenticado
+    const role = req.user.role;
+
+    // Determinar el ID real del usuario al que se le presta
+    const targetUserId = role === "admin" && userId ? userId : requesterId;
+
+    console.log(`📚 Solicitante (${role}): ${requesterId} → Préstamo para usuario: ${targetUserId}, libro: ${isbn}`);
+
     try {
-        const book = await userService.borrowBook(id, isbn);
-        res.status(200).json({ message: 'Libro prestado exitosamente', book });
+        const book = await userService.borrowBook(targetUserId, isbn);
+        res.status(200).json({
+            message: 'Libro prestado exitosamente',
+            book,
+            assignedTo: targetUserId
+        });
     } catch (error) {
         res.status(500).json({ error: `Error al prestar el libro: ${error.message}` });
     }
 };
+
 exports.getBorrowedBooks = async (req, res) => {
-    const { id } = req.body;
-    console.log("recibiendo datos: ", id)
+    const id = req.user.id; // <- tomar el id del token
+    console.log("ID obtenido del token:", id);
+
     try {
         const books = await userService.getBorrowedBooks(id);
         res.status(200).json({ books });
-        } 
-    catch (error) {
-        res.status(500).json({ error: `${error.message}`});
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: `${error.message}` });
     }
-}
+};
+
+exports.getBorrowedBooksByAdmin = async (req, res) => {
+  try {
+    const { id } = req.body; // la cédula del usuario
+
+    // Verificar que se haya enviado
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Debe enviar la cédula del usuario (id)" });
+    }
+
+    // Llamar al servicio
+    const borrowedBooks = await userService.getBorrowedBooks(id);
+
+    // Responder con los libros encontrados
+    res.status(200).json({
+      success: true,
+      borrowedBooks
+    });
+  } catch (error) {
+    console.error("Error al obtener libros prestados:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+exports.returnBook = async (req, res) => {
+  try {
+    const { isbn, id } = req.body;
+    console.log("isbn:", isbn)
+    console.log("id:", id)
+
+    const result = await userService.returnBook(id, isbn);
+    res.status(200).json({ success: true, message: result.message });
+  } catch (error) {
+    console.error("Error al devolver libro:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -206,56 +206,65 @@ exports.getUserBy_Id = async (_id) => {
 };
 // Obtener los libros prestados por un usuario por ID
 exports.getBorrowedBooks = async (id) => {
-    try {
-        const user = await User.findOne({ id }, { borrowedBooks: 1});
-        if (!user) {
-            throw new Error('User not found');
-        }
-        return user.borrowedBooks;
-    } catch (error) {
-        console.error('Error getting borrowed books in service:', error.message);
-        throw new Error(`Error getting borrowed books in service: ${error.message}`);
+  try {
+    // Buscar por el campo "id" (cedula), no por _id
+    const user = await User.findOne({ id }, { borrowedBooks: 1 });
+
+    if (!user) {
+      throw new Error('Usuario no encontrado');
     }
+
+    return user.borrowedBooks;
+  } catch (error) {
+    console.error('Error getting borrowed books in service:', error.message);
+    throw new Error(`Error getting borrowed books in service: ${error.message}`);
+  }
 };
 
 exports.borrowBook = async (userId, bookIsbn) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    try {
-        // Verificar si el libro tiene copias disponibles
-        const book = await Book.findOne({ isbn: bookIsbn }).session(session);
-        if (!book || book.availableCopies <= 0) {
-            throw new Error('No hay copias disponibles del libro.');
-        }
-
-        // Actualizar la cantidad de copias disponibles
-        console.log("prestando, copias disponibles: ", book)
-        book.availableCopies -= 1;
-        console.log("prestando, copias luego del prestamo: ", book)
-        await book.save({ session });
-
-        // Agregar el libro a la lista de libros prestados del usuario
-        const user = await User.findOne({ id: userId }).session(session);
-        if (!user) {
-            throw new Error('Usuario no encontrado.');
-        }
-        user.borrowedBooks.push({ bookId: book._id.toString(), title: book.title });
-        await user.save({ session });
-
-        // Cometer la transacción
-        await session.commitTransaction();
-        console.log('Libro prestado exitosamente');
-        return book;
-    } catch (error) {
-        // Abortar la transacción en caso de error
-        await session.abortTransaction();
-        console.error('Error al prestar el libro:', error);
-        throw error;
-    } finally {
-        session.endSession();
+  try {
+    // 1️⃣ Buscar el libro por ISBN
+    const book = await Book.findOne({ isbn: bookIsbn }).session(session);
+    if (!book || book.availableCopies <= 0) {
+      throw new Error('No hay copias disponibles del libro.');
     }
+
+    // 2️⃣ Restar una copia disponible
+    book.availableCopies -= 1;
+    await book.save({ session });
+
+    // 3️⃣ Buscar al usuario por cédula (id)
+    const user = await User.findOne({ id: userId }).session(session);
+    if (!user) {
+      throw new Error('Usuario no encontrado.');
+    }
+
+    // 4️⃣ Agregar el libro al array de libros prestados del usuario
+    user.borrowedBooks.push({
+      bookId: book._id.toString(),
+      isbn: book.isbn,             // 👈 ahora se guarda el ISBN también
+      title: book.title
+    });
+
+    await user.save({ session });
+
+    // 5️⃣ Confirmar la transacción
+    await session.commitTransaction();
+    console.log(`📚 Libro "${book.title}" prestado al usuario con cédula ${userId}`);
+    return book;
+
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Error al prestar el libro:', error.message);
+    throw error;
+  } finally {
+    session.endSession();
+  }
 };
+
 // Función para buscar un préstamo por bookId
 exports.getLoanByBookId = async (userId, bookId) => {
     try {
@@ -298,6 +307,51 @@ exports.extendLoan = async (userId, bookId) => {
 
     return loan;
 }
+
+// userService.js
+exports.returnBook = async (userId, isbn) => {
+  try {
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    // Buscar el préstamo activo del libro
+    const borrowedBook = user.borrowedBooks.find(
+      (book) => book.isbn === isbn && book.status === "activo"
+    );
+
+    if (!borrowedBook) {
+      throw new Error("Este libro no está actualmente prestado.");
+    }
+
+    // Registrar fecha de devolución
+    borrowedBook.actualReturnDate = new Date();
+
+    // Evaluar si fue atrasado o entregado a tiempo
+    if (borrowedBook.actualReturnDate > borrowedBook.returnDate) {
+      borrowedBook.status = "atrasado";
+    } else {
+      borrowedBook.status = "entregado";
+    }
+
+    // Actualizar disponibilidad del libro en la colección "books"
+    const Book = require("../models/bookModel");
+    const book = await Book.findOne({ isbn });
+    if (book) {
+      book.availableCopies += 1; // ✅ sumamos una copia disponible
+      await book.save();
+    }
+
+    // Guardar cambios en el usuario
+    await user.save();
+
+    return { success: true, borrowedBooks: user.borrowedBooks };
+  } catch (error) {
+    console.error("Error al devolver el libro:", error);
+    throw new Error("No se pudo procesar la devolución.");
+  }
+};
 
 // // Extender el plazo del préstamo
 // exports.extendLoan = async (userId, loanId, newReturnDate) => {

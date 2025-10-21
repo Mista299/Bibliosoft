@@ -45,13 +45,12 @@ const updateBook = async (req, res) => {
     console.error("Error actualizando libro:", error.message);
     res.status(500).json({ success: false, message: "Error actualizando libro" });
   }
+  
 };
-
-
 
 module.exports = {
   createBook,
   getAllBooks,
   deleteBook,
-  updateBook
+  updateBook,
 };

@@ -3,16 +3,25 @@ const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
 
 const borrowedBookSchema = new Schema({
-    bookId: { type: String, required: true },
-    title: { type: String, required: true },
-    borrowedDate: { type: Date, default: Date.now },
-    returnDate: { 
-        type: Date, 
-        default: function() {
-            return new Date(this.borrowedDate.getTime() + 15 * 24 * 60 * 60 * 1000); // +15 días
-        }
-    },
-    extensionCount: { type: Number, default: 0 }
+  bookId: { type: String, required: true },
+  isbn: { type: String, required: true },
+  title: { type: String, required: true },
+  borrowedDate: { type: Date, default: Date.now },
+  returnDate: { 
+    type: Date, 
+    default: function() {
+      return new Date(this.borrowedDate.getTime() + 15 * 24 * 60 * 60 * 1000); // +15 días
+    }
+  },
+  extensionCount: { type: Number, default: 0 },
+
+  // ✅ Nuevos campos
+  actualReturnDate: { type: Date, default: null },
+  status: { 
+    type: String, 
+    enum: ['activo', 'entregado', 'atrasado'], 
+    default: 'activo' 
+  }
 }, { _id: false });
 
 const userSchema = new Schema({

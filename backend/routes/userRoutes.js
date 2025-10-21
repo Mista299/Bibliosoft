@@ -14,6 +14,15 @@ router.get("/login", (req, res) => {
   res.json({ message: "Login page (frontend debería manejar esto)" });
 });
 
+// Préstamos de libros
+router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook);
+router.get("/borrowBook", authenticateToken, authorizeRole(["admin", "user"]), userController.getBorrowedBooks);
+router.get("/borrowBookUser", authenticateToken, authorizeRole(["admin"]), userController.getBorrowedBooksByAdmin);
+
+//  Devolver libro
+router.post("/returnBook", authenticateToken, authorizeRole(["admin"]), userController.returnBook);
+
+
 // Perfil de usuario autenticado
 router.get("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserName);
 router.get("/useremail", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserEmail);
