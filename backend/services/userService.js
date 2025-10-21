@@ -204,11 +204,11 @@ exports.getUserBy_Id = async (_id) => {
         throw new Error('Error getting user by ID in service');
     }
 };
-// Obtener los libros prestados por un usuario por ID
-exports.getBorrowedBooks = async (id) => {
+// Obtener los libros prestados por un usuario por _ID
+exports.getBorrowedBooks = async (userId) => {
   try {
-    // Buscar por el campo "id" (cedula), no por _id
-    const user = await User.findOne({ id }, { borrowedBooks: 1 });
+    // Buscar por _id (que ahora es la cédula)
+    const user = await User.findById(userId, 'borrowedBooks');
 
     if (!user) {
       throw new Error('Usuario no encontrado');
@@ -216,10 +216,11 @@ exports.getBorrowedBooks = async (id) => {
 
     return user.borrowedBooks;
   } catch (error) {
-    console.error('Error getting borrowed books in service:', error.message);
-    throw new Error(`Error getting borrowed books in service: ${error.message}`);
+    console.error('Error al obtener libros prestados en el servicio:', error.message);
+    throw new Error(`Error al obtener libros prestados en el servicio: ${error.message}`);
   }
 };
+
 
 exports.borrowBook = async (userId, bookIsbn) => {
   const session = await mongoose.startSession();
