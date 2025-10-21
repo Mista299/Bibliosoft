@@ -5,3 +5,4 @@ node_modules/
 # Ignorar cualquier archivo dentro de node_modules
 node_modules/**
 
+package-lock.json/
