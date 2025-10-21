@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 // 🟣 Servicio para obtener préstamos del usuario autenticado
 export async function fetchUserLoans() {
-  const res = await fetch(`${API_URL}/loans/user`, {
+  const res = await fetch(`${API_URL}/users/borrowBook`, {
     method: "GET",
     credentials: "include", // importante si usas cookies
   });

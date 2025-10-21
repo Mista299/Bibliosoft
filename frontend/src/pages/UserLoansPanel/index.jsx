@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function UserLoansPanel() {
   const sidebarLinks = [
-    { name: "Mis Libros", path: "/user/loans", icon: BookOpen },
+    { name: "Mis Libros", path: "/user/books", icon: BookOpen },
     { name: "Historial", path: "/user/history", icon: Clock },
   ];
 
@@ -134,7 +134,7 @@ export default function UserLoansPanel() {
         </div>
 
         {/* Header desktop */}
-        <h2 className="hidden md:block text-xl font-semibold mb-6">Panel de préstamos</h2>
+        <h2 className="hidden md:block text-xl font-semibold mb-6">Panel de Usuarios</h2>
 
         {loading && <p className="text-gray-500">Cargando tus préstamos...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
