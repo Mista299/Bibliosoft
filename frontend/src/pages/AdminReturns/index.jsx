@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Book, ClipboardList, RotateCcw } from "lucide-react";
+import { Menu, User, Book, ClipboardList, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import AlertBox from "@/components/ui/AlertBox";
@@ -31,7 +31,6 @@ export default function AdminReturns() {
       const res = await returnBook(id, isbn);
       setAlert({ type: "success", message: res.message || "Devolución registrada" });
 
-      // actualiza lista de préstamos del usuario
       const userBooks = await fetchBorrowedBooks(id);
       setBorrowedBooks(userBooks.borrowedBooks);
       setId("");
@@ -68,7 +67,23 @@ export default function AdminReturns() {
 
       {/* Contenido principal */}
       <div className="flex-1 p-6 bg-gray-50 min-h-screen flex flex-col items-center">
-        <h2 className="text-2xl font-semibold mb-6 text-[#9810FA]">Registrar Devolución</h2>
+        {/* Botón para abrir el menú en móvil */}
+        <div className="w-full flex items-center justify-between mb-4 md:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+            className="border border-gray-300"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <h2 className="text-xl font-semibold text-[#9810FA]">Panel de Devoluciones</h2>
+        </div>
+
+        {/* Título desktop */}
+        <h2 className="hidden md:block text-2xl font-semibold mb-6 text-[#9810FA]">
+          Registrar Devolución
+        </h2>
 
         {alert && (
           <div className="mb-4 w-full max-w-2xl">
@@ -101,10 +116,10 @@ export default function AdminReturns() {
           </Button>
         </div>
 
-        {/* Tabla o cards */}
+        {/* Tabla / Cards */}
         {borrowedBooks.length > 0 && (
           <div className="w-full max-w-5xl">
-            {/* ===== TABLE (Desktop) ===== */}
+            {/* Tabla desktop */}
             <div className="hidden sm:block overflow-x-auto rounded-lg shadow-md">
               <table className="min-w-full bg-white border border-gray-200 text-sm">
                 <thead className="bg-gray-100 text-gray-700 uppercase">
@@ -138,9 +153,7 @@ export default function AdminReturns() {
                       </td>
                       <td
                         className={`px-4 py-2 border font-semibold text-center ${
-                          book.status === "activo"
-                            ? "text-green-600"
-                            : "text-purple-700"
+                          book.status === "activo" ? "text-green-600" : "text-purple-700"
                         }`}
                       >
                         {book.status}
@@ -151,7 +164,7 @@ export default function AdminReturns() {
               </table>
             </div>
 
-            {/* ===== CARDS (Mobile) ===== */}
+            {/* Cards móvil */}
             <div className="sm:hidden space-y-4">
               {borrowedBooks.map((book) => (
                 <div
@@ -167,18 +180,14 @@ export default function AdminReturns() {
                     <strong>ISBN:</strong> {book.isbn}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <strong>Préstamo:</strong>{" "}
-                    {new Date(book.borrowedDate).toLocaleDateString()}
+                    <strong>Préstamo:</strong> {new Date(book.borrowedDate).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <strong>Devolución:</strong>{" "}
-                    {new Date(book.returnDate).toLocaleDateString()}
+                    <strong>Devolución:</strong> {new Date(book.returnDate).toLocaleDateString()}
                   </p>
                   <p
                     className={`mt-2 text-sm font-semibold ${
-                      book.status === "activo"
-                        ? "text-green-600"
-                        : "text-purple-700"
+                      book.status === "activo" ? "text-green-600" : "text-purple-700"
                     }`}
                   >
                     Estado: {book.status}
