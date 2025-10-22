@@ -9,9 +9,16 @@ router.post("/login", userController.loginUser);
 router.post("/logout", userController.logOut);
 
 // Préstamos de libros
-router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook);
+router.post("/borrowBook", authenticateToken, authorizeRole(["admin"]), userController.borrowBook); //preestar libro, solo por admin panel
+
 router.get("/borrowBook", authenticateToken, authorizeRole(["admin", "user"]), userController.getBorrowedBooks); //obetener prestamos por userpanel
-router.get("/borrowBookUser", authenticateToken, authorizeRole(["admin"]), userController.getBorrowedBooksByAdmin); //obtener prestamos por panel de admin
+router.get(
+  "/borrowBookA/:id",
+  authenticateToken,
+  authorizeRole(["admin"]),
+  userController.getBorrowedBooksByAdmin
+);
+ //obtener prestamos por panel de admin
 
 //  Devolver libro
 router.post("/returnBook", authenticateToken, authorizeRole(["admin"]), userController.returnBook);
