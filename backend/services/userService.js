@@ -298,15 +298,17 @@ exports.getLoanByBookId = async (userId, bookId) => {
 exports.extendLoanByCedula = async (cedula, isbn) => {
   try {
     const user = await User.findOne({ id: cedula });
-    if (!user) throw new Error('Usuario no encontrado');
+    if (!user) throw { status: 404, message: "Usuario no encontrado" };
 
     const loan = user.borrowedBooks.find(
-      (b) => b.isbn === isbn && b.status === 'activo'
+      (b) => b.isbn === isbn && b.status === "activo"
     );
 
-    if (!loan) throw new Error('Préstamo activo no encontrado o ya devuelto');
+    if (!loan)
+      throw { status: 404, message: "Préstamo activo no encontrado o ya devuelto" };
+
     if ((loan.extensionCount || 0) >= 2)
-      throw new Error('Límite máximo de extensiones alcanzado');
+      throw { status: 400, message: "Límite máximo de extensiones alcanzado" };
 
     // Extender el plazo
     const nuevaFecha = new Date(loan.returnDate);
@@ -318,55 +320,20 @@ exports.extendLoanByCedula = async (cedula, isbn) => {
     await user.save();
 
     return {
-      message: 'Préstamo extendido exitosamente',
+      message: "Préstamo extendido exitosamente",
       isbn: loan.isbn,
       newReturnDate: loan.returnDate,
       extensionCount: loan.extensionCount,
     };
   } catch (error) {
-    console.error('Error en extendLoanByCedula:', error);
-    throw error;
+    console.error("Error en extendLoanByCedula:", error);
+    // Si el error tiene status definido, lo propagamos tal cual
+    if (error.status) throw error;
+    // Caso contrario, enviamos un error genérico
+    throw { status: 500, message: "Error interno del servidor" };
   }
 };
 
-exports.returnBook = async (userId, isbn) => {
-  try {
-    const user = await User.findOne({ id: userId });
-    if (!user) {
-      throw new Error("Usuario no encontrado");
-    }
-    const borrowedBook = user.borrowedBooks.find(
-      (book) => book.isbn === isbn && book.status !== "entregado"
-    );
-
-    if (!borrowedBook) {
-      throw new Error("No se encontró un préstamo activo o atrasado con ese ISBN para este usuario.");
-    }
-
-    borrowedBook.actualReturnDate = new Date();
-
-    borrowedBook.status =
-      borrowedBook.actualReturnDate > borrowedBook.returnDate ? "atrasado" : "entregado";
-
-    const Book = require("../models/bookModel");
-    const book = await Book.findOne({ isbn });
-    if (book) {
-      book.availableCopies += 1;
-      await book.save();
-    }
-
-    await user.save();
-
-    return {
-      success: true,
-      message: `Libro devuelto correctamente (${borrowedBook.status}).`,
-      borrowedBooks: user.borrowedBooks,
-    };
-  } catch (error) {
-    console.error("Error al devolver el libro:", error);
-    throw new Error(error.message || "No se pudo procesar la devolución.");
-  }
-};
 
 
 

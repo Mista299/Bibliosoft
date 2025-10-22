@@ -13,22 +13,32 @@ export async function fetchUserLoans() {
   return res.json();
 }
 
-export const extendLoan = async (bookId) => {
-  const API_URL = import.meta.env.VITE_API_URL;
-  const res = await fetch(`${API_URL}/users/extendLoan`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bookId }),
-    credentials: "include", // ⬅️ importante si el backend usa cookies
-  });
+export const extendLoan = async (isbn) => {
+  try {
+    const response = await fetch(`${API_URL}/users/extendLoan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ isbn }),
+    });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || "Error extendiendo préstamo");
+    // Parseamos siempre la respuesta para ver el mensaje del backend
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Muestra el mensaje de error real que envió el backend
+      throw new Error(data.error || "No se pudo extender el préstamo.");
+    }
+
+    return data; // Devuelve el resultado correcto
+  } catch (error) {
+    console.error("Error al extender préstamo:", error);
+    throw error; // Reenvía el error al frontend (index.jsx)
   }
-
-  return res.json();
 };
+
 
 export const returnBook = async (id, isbn) => {
   try {

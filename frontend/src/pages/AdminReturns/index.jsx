@@ -20,6 +20,7 @@ export default function AdminReturns() {
   const [loading, setLoading] = useState(false);
   const [borrowedBooks, setBorrowedBooks] = useState([]);
 
+  // 🔄 Registrar devolución
   const handleReturn = async () => {
     if (!id || !isbn) {
       setAlert({ type: "error", message: "Debe ingresar cédula e ISBN" });
@@ -29,27 +30,41 @@ export default function AdminReturns() {
     try {
       setLoading(true);
       const res = await returnBook(id, isbn);
-      setAlert({ type: "success", message: res.message || "Devolución registrada" });
+      setAlert({ type: "success", message: res.message || "Devolución registrada correctamente" });
 
+      // Obtener los préstamos actualizados
       const userBooks = await fetchBorrowedBooks(id);
-      setBorrowedBooks(userBooks.borrowedBooks);
-      setId("");
+      setBorrowedBooks(userBooks.borrowedBooks || []);
       setIsbn("");
     } catch (err) {
-      setAlert({ type: "error", message: err.message });
+      setAlert({ type: "error", message: err.message || "Error al registrar la devolución" });
     } finally {
       setLoading(false);
     }
   };
 
+  // 🎨 Colores según el estado del préstamo
+  const getRowColor = (status) => {
+    switch (status) {
+      case "activo":
+        return { bg: "bg-green-50 hover:bg-green-100", text: "text-green-600" };
+      case "vencido":
+        return { bg: "bg-red-50 hover:bg-red-100", text: "text-red-600" };
+      case "devuelto":
+        return { bg: "bg-purple-50 hover:bg-purple-100", text: "text-purple-700" };
+      default:
+        return { bg: "bg-gray-50 hover:bg-gray-100", text: "text-gray-600" };
+    }
+  };
+
   return (
     <div className="flex">
-      {/* Sidebar desktop */}
+      {/* 📁 Sidebar desktop */}
       <div className="hidden md:flex">
         <Sidebar links={sidebarLinks} />
       </div>
 
-      {/* Sidebar móvil */}
+      {/* 📱 Sidebar móvil */}
       <div
         className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
           sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -65,9 +80,9 @@ export default function AdminReturns() {
         </div>
       </div>
 
-      {/* Contenido principal */}
+      {/* 🌐 Contenido principal */}
       <div className="flex-1 p-6 bg-gray-50 min-h-screen flex flex-col items-center">
-        {/* Botón para abrir el menú en móvil */}
+        {/* Botón menú móvil */}
         <div className="w-full flex items-center justify-between mb-4 md:hidden">
           <Button
             variant="outline"
@@ -119,7 +134,7 @@ export default function AdminReturns() {
         {/* Tabla / Cards */}
         {borrowedBooks.length > 0 && (
           <div className="w-full max-w-5xl">
-            {/* Tabla desktop */}
+            {/* 🖥 Tabla desktop */}
             <div className="hidden sm:block overflow-x-auto rounded-lg shadow-md">
               <table className="min-w-full bg-white border border-gray-200 text-sm">
                 <thead className="bg-gray-100 text-gray-700 uppercase">
@@ -132,68 +147,54 @@ export default function AdminReturns() {
                   </tr>
                 </thead>
                 <tbody>
-                  {borrowedBooks.map((book) => (
-                    <tr
-                      key={book.bookId}
-                      className={`border ${
-                        book.status === "activo"
-                          ? "bg-green-50 hover:bg-green-100"
-                          : "bg-purple-50 hover:bg-purple-100"
-                      }`}
-                    >
-                      <td className="px-4 py-2 border">{book.title}</td>
-                      <td className="px-4 py-2 border">{book.isbn}</td>
-                      <td className="px-4 py-2 border">
-                        {new Date(book.borrowedDate).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-2 border">
-                        {book.actualReturnDate
-                          ? new Date(book.actualReturnDate).toLocaleString()
-                          : new Date(book.returnDate).toLocaleString()}
-                      </td>
-                      <td
-                        className={`px-4 py-2 border font-semibold text-center ${
-                          book.status === "activo" ? "text-green-600" : "text-purple-700"
-                        }`}
-                      >
-                        {book.status}
-                      </td>
-                    </tr>
-                  ))}
+                  {borrowedBooks.map((book) => {
+                    const { bg, text } = getRowColor(book.status);
+                    return (
+                      <tr key={book.bookId} className={`border ${bg}`}>
+                        <td className="px-4 py-2 border">{book.title}</td>
+                        <td className="px-4 py-2 border">{book.isbn}</td>
+                        <td className="px-4 py-2 border">
+                          {new Date(book.borrowedDate).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-2 border">
+                          {book.actualReturnDate
+                            ? new Date(book.actualReturnDate).toLocaleString()
+                            : new Date(book.returnDate).toLocaleString()}
+                        </td>
+                        <td className={`px-4 py-2 border font-semibold text-center ${text}`}>
+                          {book.status}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
-            {/* Cards móvil */}
+            {/* 📱 Cards móvil */}
             <div className="sm:hidden space-y-4">
-              {borrowedBooks.map((book) => (
-                <div
-                  key={book.bookId}
-                  className={`p-4 rounded-xl border shadow-sm ${
-                    book.status === "activo"
-                      ? "bg-green-50 border-green-200"
-                      : "bg-purple-50 border-purple-200"
-                  }`}
-                >
-                  <h3 className="font-semibold text-gray-800 text-base mb-1">{book.title}</h3>
-                  <p className="text-sm text-gray-600">
-                    <strong>ISBN:</strong> {book.isbn}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Préstamo:</strong> {new Date(book.borrowedDate).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Devolución:</strong> {new Date(book.returnDate).toLocaleDateString()}
-                  </p>
-                  <p
-                    className={`mt-2 text-sm font-semibold ${
-                      book.status === "activo" ? "text-green-600" : "text-purple-700"
-                    }`}
-                  >
-                    Estado: {book.status}
-                  </p>
-                </div>
-              ))}
+              {borrowedBooks.map((book) => {
+                const { bg, text } = getRowColor(book.status);
+                return (
+                  <div key={book.bookId} className={`p-4 rounded-xl border shadow-sm ${bg}`}>
+                    <h3 className="font-semibold text-gray-800 text-base mb-1">{book.title}</h3>
+                    <p className="text-sm text-gray-600">
+                      <strong>ISBN:</strong> {book.isbn}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <strong>Préstamo:</strong>{" "}
+                      {new Date(book.borrowedDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <strong>Devolución:</strong>{" "}
+                      {new Date(book.returnDate).toLocaleDateString()}
+                    </p>
+                    <p className={`mt-2 text-sm font-semibold ${text}`}>
+                      Estado: {book.status}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

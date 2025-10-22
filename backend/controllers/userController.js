@@ -385,16 +385,33 @@ exports.returnBook = async (req, res) => {
 exports.extendLoan = async (req, res) => {
   try {
     const { isbn } = req.body;
-    const cedula = req.user.cc; // ← ahora viene directamente del token
+    const cedula = req.user.cc; // ← viene directamente del token
 
     console.log('extendLoan - cedula del usuario:', cedula);
     console.log('extendLoan - isbn recibido:', isbn);
 
     const result = await userService.extendLoanByCedula(cedula, isbn);
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Controller extendLoan error:', error.message);
-    res.status(400).json({ error: error.message });
+
+    // Si el mensaje del servicio es uno de los errores conocidos, devolvemos 400
+    if (
+      error.message === 'Usuario no encontrado' ||
+      error.message === 'Préstamo activo no encontrado o ya devuelto' ||
+      error.message === 'Límite máximo de extensiones alcanzado'
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    // Para cualquier otro error inesperado → 500
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      details: error.message,
+    });
   }
 };
-
