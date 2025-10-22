@@ -7,6 +7,7 @@ import { returnBook } from "@/services/loansService";
 
 export default function AdminReturns() {
   const sidebarLinks = [
+    { name: "Configuración", path: "/admin/settings", icon: User },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
