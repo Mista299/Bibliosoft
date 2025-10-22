@@ -13,7 +13,7 @@ export default function Login() {
   const [alert, setAlert] = useState(null)
   const navigate = useNavigate()
 
-  // Auto-cierre de la alerta
+  // 🔔 Auto-cierre de la alerta
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 4000)
@@ -23,6 +23,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     try {
       const res = await fetch(`${API_URL}/users/login`, {
         method: "POST",
@@ -39,8 +40,16 @@ export default function Login() {
 
       setAlert({ type: "success", message: "Inicio de sesión exitoso ✅" })
 
-      // Pequeña pausa para mostrar alerta antes de navegar
-      setTimeout(() => navigate("/admin/books"), 1000)
+      // 🔁 Redirección según el rol
+      setTimeout(() => {
+        if (data.role === "admin") {
+          navigate("/admin/books")
+        } else if (data.role === "user") {
+          navigate("/user/books")
+        } else {
+          setAlert({ type: "error", message: "Rol desconocido o inválido ❌" })
+        }
+      }, 1000)
     } catch (err) {
       console.error("Error en login:", err)
       setAlert({ type: "error", message: "No se pudo conectar con el servidor ❌" })
@@ -63,7 +72,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-2">Login</h1>
         <p className="text-gray-600 text-center mb-6">
-          Enter your email to Log in for this app
+          Enter your email to log in to this app
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

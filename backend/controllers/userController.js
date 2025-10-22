@@ -330,7 +330,7 @@ exports.borrowBook = async (req, res) => {
 };
 
 exports.getBorrowedBooks = async (req, res) => {
-    const id = req.user.id; // <- tomar el id del token
+    const id = req.user.cc;
     console.log("ID obtenido del token:", id);
 
     try {
