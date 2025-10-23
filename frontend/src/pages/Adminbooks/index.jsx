@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, User, Book, ClipboardList } from "lucide-react";
+import { Menu, User, Book, ClipboardList, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import EditBookDialog from "@/components/EditBookDialog";
@@ -14,7 +14,7 @@ import RegisterBook from "@/components/RegisterBook";
 
 export default function AdminBooks() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: User },
+    { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },

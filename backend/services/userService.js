@@ -333,7 +333,36 @@ exports.extendLoanByCedula = async (cedula, isbn) => {
     throw { status: 500, message: "Error interno del servidor" };
   }
 };
+exports.returnBook = async (userId, isbn) => {
+  try {
+    // Buscar el usuario por su id (cédula)
+    const user = await User.findOne({ id: userId });
+    if (!user) throw new Error("Usuario no encontrado");
 
+    // Buscar el préstamo activo con ese ISBN
+    const borrowedBook = user.borrowedBooks.find(
+      (b) => b.isbn === isbn && b.status === "activo"
+    );
+
+    if (!borrowedBook) {
+      throw new Error("No se encontró un préstamo activo con ese ISBN");
+    }
+
+    // Marcar el libro como entregado
+    borrowedBook.status = "entregado";
+    borrowedBook.actualReturnDate = new Date();
+
+    // Guardar los cambios
+    await user.save();
+
+    return {
+      message: `El libro '${borrowedBook.title}' fue devuelto correctamente.`,
+    };
+  } catch (error) {
+    console.error("❌ Error en returnBook (userService):", error.message);
+    throw new Error(error.message || "Error al devolver el libro");
+  }
+};
 
 
 

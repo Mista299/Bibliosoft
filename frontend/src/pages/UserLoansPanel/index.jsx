@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, BookOpen, Clock } from "lucide-react";
+import { Menu, BookOpen, Clock, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import AlertBox from "@/components/ui/AlertBox";
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function UserLoansPanel() {
   const sidebarLinks = [
+    { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Mis Libros", path: "/user/books", icon: BookOpen },
     { name: "Historial", path: "/user/history", icon: Clock },
   ];

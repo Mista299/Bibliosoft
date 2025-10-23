@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, User, Book, ClipboardList, RotateCcw } from "lucide-react";
+import { Menu, User, Book, ClipboardList, RotateCcw,  Settings} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import AlertBox from "@/components/ui/AlertBox";
@@ -7,7 +7,7 @@ import { returnBook, fetchBorrowedBooks } from "@/services/loansService";
 
 export default function AdminReturns() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: User },
+    { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },

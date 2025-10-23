@@ -1,25 +1,26 @@
 import { useState, useEffect } from "react";
-import { Menu, User, Book, ClipboardList, Settings, RotateCcw } from "lucide-react";
+import {
+  Menu,
+  User,
+  Book,
+  ClipboardList,
+  Settings,
+  RotateCcw,
+  BookOpen,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import AlertBox from "@/components/ui/AlertBox";
 import { useNavigate } from "react-router-dom";
 
 export default function SettingsPage() {
-  const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: User },
-    { name: "Usuarios", path: "/admin/users", icon: User },
-    { name: "Libros", path: "/admin/books", icon: Book },
-    { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
-    { name: "Devoluciones", path: "/admin/returns", icon: RotateCcw },
-  ];
-
-  // 🧠 Estado del usuario (esto normalmente vendría del backend o contexto)
+  // 🧠 Estado del usuario (datos quemados)
   const [user, setUser] = useState({
     name: "María Fernanda Atencia",
     email: "mafe@example.com",
     password: "********",
-    role: "Administrador",
+    role: "user", // 🔹 Cambia a "admin" para probar el panel de administrador
   });
 
   const [form, setForm] = useState({
@@ -31,6 +32,22 @@ export default function SettingsPage() {
   const [alert, setAlert] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+
+  // 🧭 Sidebar dinámico según el rol del usuario
+  const sidebarLinks =
+    user.role === "admin"
+      ? [
+          { name: "Configuración", path: "/admin/settings", icon: Settings },
+          { name: "Usuarios", path: "/admin/users", icon: User },
+          { name: "Libros", path: "/admin/books", icon: Book },
+          { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
+          { name: "Devoluciones", path: "/admin/returns", icon: RotateCcw },
+        ]
+      : [
+          { name: "Configuración", path: "/admin/settings", icon: Settings },
+          { name: "Mis Libros", path: "/user/books", icon: BookOpen },
+          { name: "Historial", path: "/user/history", icon: Clock },
+        ];
 
   // 🔒 Bloquear scroll con sidebar móvil
   useEffect(() => {
@@ -47,7 +64,7 @@ export default function SettingsPage() {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [sidebarOpen]);
 
-  // 🔔 Auto-cierre alertas
+  // 🔔 Auto-cierre de alertas
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 4000);
@@ -131,7 +148,9 @@ export default function SettingsPage() {
         </div>
 
         {/* Header desktop */}
-        <h2 className="hidden md:block text-xl font-semibold mb-6">Configuración del usuario</h2>
+        <h2 className="hidden md:block text-xl font-semibold mb-6">
+          Configuración del usuario
+        </h2>
 
         {/* Tarjeta de configuración */}
         <div className="bg-white p-6 rounded-2xl shadow-md max-w-2xl mx-auto">
@@ -142,7 +161,10 @@ export default function SettingsPage() {
             <p><strong>Nombre:</strong> {user.name}</p>
             <p><strong>Correo:</strong> {user.email}</p>
             <p><strong>Contraseña:</strong> {user.password}</p>
-            <p><strong>Rol:</strong> <span className="text-indigo-600">{user.role}</span></p>
+            <p>
+              <strong>Rol:</strong>{" "}
+              <span className="text-indigo-600 capitalize">{user.role}</span>
+            </p>
           </div>
 
           <hr className="my-4" />
@@ -152,7 +174,9 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo nombre:</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nuevo nombre:
+              </label>
               <input
                 type="text"
                 name="name"
@@ -164,7 +188,9 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo correo:</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nuevo correo:
+              </label>
               <input
                 type="email"
                 name="email"
@@ -176,7 +202,9 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña:</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nueva contraseña:
+              </label>
               <input
                 type="password"
                 name="password"
