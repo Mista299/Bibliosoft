@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import EditBookDialog from "@/components/EditBookDialog";
 import BooksTable from "@/components/books/BooksTable";
 import BooksList from "@/components/books/BooksList";
-import BookSearchBar from "@/components/books/BookSearchBar";
+import SearchBar from "@/components/SearchBar";
 import AlertBox from "@/components/ui/AlertBox";
 import { fetchBooks, updateBook, deleteBook, createBook } from "@/services/booksService";
 import { useNavigate } from "react-router-dom";
@@ -161,11 +161,14 @@ export default function AdminBooks() {
         <h2 className="hidden md:block text-xl font-semibold mb-4">Panel de administrador</h2>
 
         {/* Barra de búsqueda */}
-        <BookSearchBar
+        <SearchBar
           search={search}
           setSearch={setSearch}
-          onAddBook={() => setIsOpen(true)}
+          placeholder="Buscar libros..."
+          addLabel="Agregar libro"
+          onAdd={handleAddBook}
         />
+
 
         {/* Estado de carga / error */}
         {loading && <p className="text-gray-500">Cargando...</p>}

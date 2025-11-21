@@ -7,7 +7,8 @@ import AlertBox from "@/components/ui/AlertBox";
 
 import UsersTable from "@/components/users/UsersTable.jsx";
 import UsersList from "@/components/users/UsersList";
-import UserSearchBar from "@/components/users/UserSearchBar";
+import SearchBar from "@/components/SearchBar";
+
 
 import EditUserDialog from "@/components/users/EditUserDialog";
 import RegisterUser from "@/components/users/RegisterUser";
@@ -215,11 +216,14 @@ export default function AdminUsers() {
         <h2 className="hidden md:block text-xl font-semibold mb-4">Administración — Usuarios</h2>
 
         {/* Buscador + botón añadir */}
-        <UserSearchBar
-          search={search}
-          setSearch={setSearch}
-          onAdd={() => setRegisterOpen(true)}
+        <SearchBar
+        search={search}
+        setSearch={setSearch}
+        placeholder="Buscar usuario por nombre o cédula..."
+        addLabel="Registrar usuario"
+        onAdd={() => setRegisterOpen(true)}
         />
+
 
         {/* Loader */}
         {loading && <p className="text-gray-500">Cargando usuarios...</p>}
