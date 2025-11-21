@@ -43,7 +43,7 @@ export async function fetchUsers() {
 
 
 export async function updateUserName(id, body) {
-  const res = await fetch(`${API_URL}/${id}/name`, {
+  const res = await fetch(`${API_URL}/users/${id}/name`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -53,7 +53,7 @@ export async function updateUserName(id, body) {
 }
 
 export async function updateUserEmail(id, body) {
-  const res = await fetch(`${API_URL}/${id}/email`, {
+  const res = await fetch(`${API_URL}/users/${id}/email`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
