@@ -5,6 +5,8 @@ import Adminbooks from "./pages/Adminbooks";
 import UserLoansPanel from "./pages/UserLoansPanel";
 import AdminReturns from "./pages/AdminReturns";
 import SettingsPage from "./pages/SettingsPage";
+import AdminUsers from "./pages/AdminUsers";
+
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
       <Route path="/admin/returns" element={<AdminReturns />} />
       <Route path="/user/books" element={<UserLoansPanel />} />
       <Route path="/admin/settings" element={<SettingsPage />} />
+      <Route path="/admin/users" element={<AdminUsers />} />
+
       <Route
         path="*"
         element={

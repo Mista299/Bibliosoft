@@ -13,7 +13,6 @@ export default function Login() {
   const [alert, setAlert] = useState(null)
   const navigate = useNavigate()
 
-  // 🔔 Auto-cierre de la alerta
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 4000)
@@ -23,7 +22,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     try {
       const res = await fetch(`${API_URL}/users/login`, {
         method: "POST",
@@ -31,24 +29,16 @@ export default function Login() {
         credentials: "include",
         body: JSON.stringify({ email, password }),
       })
-
       const data = await res.json()
       if (!res.ok) {
         setAlert({ type: "error", message: data.error || "Error en el login ❌" })
         return
       }
-
       setAlert({ type: "success", message: "Inicio de sesión exitoso ✅" })
-
-      // 🔁 Redirección según el rol
       setTimeout(() => {
-        if (data.role === "admin") {
-          navigate("/admin/books")
-        } else if (data.role === "user") {
-          navigate("/user/books")
-        } else {
-          setAlert({ type: "error", message: "Rol desconocido o inválido ❌" })
-        }
+        if (data.role === "admin") navigate("/admin/books")
+        else if (data.role === "user") navigate("/user/books")
+        else setAlert({ type: "error", message: "Rol desconocido ❌" })
       }, 1000)
     } catch (err) {
       console.error("Error en login:", err)
@@ -56,85 +46,98 @@ export default function Login() {
     }
   }
 
+  const images = [
+    "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80"
+  ]
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 relative">
-      {/* 🔔 Alerta flotante */}
+    <div className="flex min-h-screen items-center justify-center relative overflow-hidden bg-gray-50">
+      {/* Fondo collage más oscuro */}
+      {images.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={`Library ${i}`}
+          className="absolute inset-0 w-full h-full object-cover opacity-35 animate-fadeIn"
+          style={{
+            zIndex: -i,
+            transform: `translate(${i * 15}px, ${i * 10}px) rotate(${i * 2}deg)`
+          }}
+        />
+      ))}
+
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-80">
-          <AlertBox
-            type={alert.type}
-            message={alert.message}
-            onClose={() => setAlert(null)}
-          />
+          <AlertBox type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
         </div>
       )}
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center mb-2">Login</h1>
-        <p className="text-gray-600 text-center mb-6">
-          Enter your email to log in to this app
-        </p>
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-md p-6 border border-gray-200 animate-slideUp z-10">
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src={logo}
+            alt="BiblioSoft"
+            className="h-32 sm:h-70 mb-0 animate-bounce" // aumenté la altura
+          />
+          <h1 className="text-2xl sm:text-3xl font-bold text-black">BiblioSoft</h1>
+        </div>  
+        <div className="mb-6 p-3 bg-gray-100 rounded-md border-l-4 border-black animate-fadeIn">
+          <p className="font-semibold text-gray-700">Credenciales de prueba:</p>
+          <p><span className="font-bold">Admin:</span> michaelpk1999@gmail.com / mistaadmin123+</p>
+          <p><span className="font-bold">Usuario:</span> juanz@gmail.com / Juan123+ / cc 165165</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="email@domain.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            required
-          />
+          <div className="relative">
+            <label className="absolute -top-3 left-3 bg-white px-1 text-sm text-gray-600">Email</label>
+            <input
+              type="email"
+              placeholder="email@domain.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            required
-          />
+          <div className="relative">
+            <label className="absolute -top-3 left-3 bg-white px-1 text-sm text-gray-600">Contraseña</label>
+            <input
+              type="password"
+              placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+              required
+            />
+          </div>
 
           <button
             type="submit"
-            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
+            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition transform hover:scale-105 font-semibold"
           >
-            Log in
+            Iniciar sesión
           </button>
         </form>
 
-        <div className="flex items-center my-6">
+        <div className="flex items-center my-5">
           <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-sm text-gray-500">¿No tienes una cuenta?</span>
+          <span className="px-2 text-sm text-gray-500">¿No tienes cuenta?</span>
           <hr className="flex-grow border-gray-300" />
         </div>
 
         <button
           type="button"
           onClick={() => setShowRegister(true)}
-          className="w-full bg-[#6650A2] text-white py-2 rounded-md hover:bg-purple-500 transition"
+          className="w-full bg-[#6650A2] text-white py-2 rounded-md hover:bg-purple-500 transition transform hover:scale-105 font-semibold"
         >
-          Register
+          Registrarse
         </button>
-
-        <p className="text-xs text-center text-gray-500 mt-6">
-          By clicking continue, you agree to our{" "}
-          <a href="#" className="font-medium text-black underline">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#" className="font-medium text-black underline">
-            Privacy Policy
-          </a>
-        </p>
-
-        {/* Logo */}
-        <div className="mt-8 flex flex-col items-center">
-          <img src={logo} alt="BiblioSoft" className="h-100" />
-          <p className="text-center text-xl font-serif mt-2">BiblioSoft</p>
-        </div>
       </div>
 
-      {/* Modal de registro */}
       {showRegister && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50">
           <div className="relative w-full max-w-lg">
@@ -148,6 +151,28 @@ export default function Login() {
           </div>
         </div>
       )}
+
+      <style>
+        {`
+          @keyframes slideUp {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+          }
+          .animate-slideUp { animation: slideUp 0.5s ease-out; }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          .animate-fadeIn { animation: fadeIn 1s ease-in; }
+
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          .animate-bounce { animation: bounce 2s infinite; }
+        `}
+      </style>
     </div>
   )
 }

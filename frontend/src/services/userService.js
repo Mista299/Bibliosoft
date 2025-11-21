@@ -23,3 +23,67 @@ export const fetchUserProfile = async () => {
     throw error;
   }
 };
+
+async function handleResp(res) {
+  if (!res.ok) {
+    const text = await res.text().catch(() => null);
+    const err = new Error(text || res.statusText);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json().catch(() => ({}));
+}
+
+export async function fetchUsers() {
+  const res = await fetch(`${API_URL}/users`, {
+    credentials: "include",
+  });
+  return handleResp(res);
+}
+
+
+export async function updateUserName(id, body) {
+  const res = await fetch(`${API_URL}/${id}/name`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return handleResp(res);
+}
+
+export async function updateUserEmail(id, body) {
+  const res = await fetch(`${API_URL}/${id}/email`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return handleResp(res);
+}
+
+export async function deleteUser(id) {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  return handleResp(res);
+}
+
+export async function createUser(body) {
+  // registra usuario -> tu backend usa router.post('/register') así que llamamos a /register
+  const res = await fetch(`${API_URL}/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return handleResp(res);
+}
+
+export async function getBorrowedBooksByAdmin(id) {
+  const res = await fetch(`${API_URL}/borrowBookA/${id}`, {
+    credentials: "include",
+  });
+  return handleResp(res);
+}
