@@ -72,7 +72,7 @@ export async function deleteUser(id) {
 
 export async function createUser(body) {
   // registra usuario -> tu backend usa router.post('/register') así que llamamos a /register
-  const res = await fetch(`${API_URL}/register`, {
+  const res = await fetch(`${API_URL}/users/register`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -82,7 +82,7 @@ export async function createUser(body) {
 }
 
 export async function getBorrowedBooksByAdmin(id) {
-  const res = await fetch(`${API_URL}/borrowBookA/${id}`, {
+  const res = await fetch(`${API_URL}/users/borrowBookA/${id}`, {
     credentials: "include",
   });
   return handleResp(res);

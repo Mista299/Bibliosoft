@@ -9,7 +9,6 @@ import UsersTable from "@/components/users/UsersTable.jsx";
 import UsersList from "@/components/users/UsersList";
 import SearchBar from "@/components/SearchBar";
 
-
 import EditUserDialog from "@/components/users/EditUserDialog";
 import RegisterUser from "@/components/users/RegisterUser";
 import BorrowedBooksDialog from "@/components/users/BorrowedBooksDialog";
@@ -23,10 +22,11 @@ import {
   getBorrowedBooksByAdmin,
 } from "@/services/userService";
 
+import { formatError } from "@/utils/formatError";
+
 import { useNavigate } from "react-router-dom";
 
 export default function AdminUsers() {
-  // Sidebar links (igual que en AdminBooks)
   const sidebarLinks = [
     { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
@@ -35,7 +35,6 @@ export default function AdminUsers() {
     { name: "Devoluciones", path: "/admin/returns", icon: RotateCcw },
   ];
 
-  // Estados
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,9 +51,9 @@ export default function AdminUsers() {
 
   const navigate = useNavigate();
 
-  // ============================
+  // ==========================================================
   // Cargar usuarios
-  // ============================
+  // ==========================================================
   useEffect(() => {
     setLoading(true);
 
@@ -63,25 +62,26 @@ export default function AdminUsers() {
       .catch((err) => {
         setAlert({
           type: "error",
-          message: err.message || "Error cargando usuarios",
+          message: formatError(err),
         });
+
         if (err.status === 401) navigate("/login");
       })
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // ============================
-  // Autoclose alertas
-  // ============================
+  // ==========================================================
+  // Autocerrar alertas
+  // ==========================================================
   useEffect(() => {
     if (!alert) return;
     const t = setTimeout(() => setAlert(null), 4000);
     return () => clearTimeout(t);
   }, [alert]);
 
-  // ============================
-  // Abrir modal de edición
-  // ============================
+  // ==========================================================
+  // Editar usuario
+  // ==========================================================
   const handleOpenEdit = (user) => {
     setSelectedUser(user);
     setIsEditOpen(true);
@@ -101,13 +101,13 @@ export default function AdminUsers() {
       setAlert({ type: "success", message: "Usuario actualizado correctamente." });
       setIsEditOpen(false);
     } catch (err) {
-      setAlert({ type: "error", message: err.message || "No se pudo actualizar el usuario." });
+      setAlert({ type: "error", message: formatError(err) });
     }
   };
 
-  // ============================
+  // ==========================================================
   // Eliminar usuario
-  // ============================
+  // ==========================================================
   const handleDelete = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
 
@@ -117,13 +117,13 @@ export default function AdminUsers() {
 
       setAlert({ type: "success", message: "Usuario eliminado." });
     } catch (err) {
-      setAlert({ type: "error", message: err.message || "No se pudo eliminar." });
+      setAlert({ type: "error", message: formatError(err) });
     }
   };
 
-  // ============================
-  // Crear usuario
-  // ============================
+  // ==========================================================
+  // Registrar usuario
+  // ==========================================================
   const handleAddUser = async (newUser) => {
     try {
       const created = await createUser(newUser);
@@ -134,13 +134,13 @@ export default function AdminUsers() {
 
       setAlert({ type: "success", message: "Usuario creado correctamente." });
     } catch (err) {
-      setAlert({ type: "error", message: err.message || "No se pudo crear el usuario." });
+      setAlert({ type: "error", message: formatError(err) });
     }
   };
 
-  // ============================
-  // Abrir modal de préstamos
-  // ============================
+  // ==========================================================
+  // Préstamos del usuario
+  // ==========================================================
   const handleOpenBorrowed = async (user) => {
     try {
       setSelectedUser(user);
@@ -150,14 +150,14 @@ export default function AdminUsers() {
       const resp = await getBorrowedBooksByAdmin(user.id);
       setBorrowedList(resp.borrowedBooks ?? resp.books ?? []);
     } catch (err) {
-      setAlert({ type: "error", message: err.message || "No se pudieron obtener préstamos." });
+      setAlert({ type: "error", message: formatError(err) });
       setBorrowedOpen(false);
     }
   };
 
-  // ============================
-  // Filtrado de usuarios
-  // ============================
+  // ==========================================================
+  // Filtrar usuarios
+  // ==========================================================
   const filtered = users.filter((u) => {
     const t = search.toLowerCase();
     return (
@@ -167,25 +167,25 @@ export default function AdminUsers() {
     );
   });
 
-  // ============================
+  // ==========================================================
   // Render
-  // ============================
+  // ==========================================================
   return (
-    <div className="flex">
+    <div className="flex w-full min-h-screen overflow-hidden">
 
-      {/* ------------ ALERTA ------------- */}
+      {/* ALERTAS */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-80">
           <AlertBox type={alert.type} message={alert.message} />
         </div>
       )}
 
-      {/* ------------ SIDEBAR DESKTOP ------------ */}
+      {/* SIDEBAR DESKTOP */}
       <div className="hidden md:flex">
         <Sidebar links={sidebarLinks} />
       </div>
 
-      {/* ------------ SIDEBAR MOBILE ------------ */}
+      {/* SIDEBAR MOBILE */}
       <div
         className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
           sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -201,10 +201,10 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      {/* ------------ CONTENIDO PRINCIPAL ------------ */}
-      <div className="flex-1 p-4 md:p-6 bg-gray-50 h-screen overflow-hidden flex flex-col">
+      {/* CONTENIDO */}
+      <div className="flex-1 p-4 md:p-6 bg-gray-50 overflow-y-auto flex flex-col w-full max-w-full">
 
-        {/* Encabezado mobile */}
+        {/* Header móvil */}
         <div className="flex items-center justify-between md:hidden mb-4">
           <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
@@ -212,39 +212,43 @@ export default function AdminUsers() {
           <h2 className="text-lg font-semibold">Administración — Usuarios</h2>
         </div>
 
-        {/* Encabezado desktop */}
-        <h2 className="hidden md:block text-xl font-semibold mb-4">Administración — Usuarios</h2>
+        {/* Header desktop */}
+        <h2 className="hidden md:block text-xl font-semibold mb-4">
+          Administración — Usuarios
+        </h2>
 
-        {/* Buscador + botón añadir */}
+        {/* Buscador + Agregar */}
         <SearchBar
-        search={search}
-        setSearch={setSearch}
-        placeholder="Buscar usuario por nombre o cédula..."
-        addLabel="Registrar usuario"
-        onAdd={() => setRegisterOpen(true)}
+          search={search}
+          setSearch={setSearch}
+          placeholder="Buscar usuario por nombre o cédula..."
+          addLabel="Registrar usuario"
+          onAdd={() => setRegisterOpen(true)}
         />
 
-
-        {/* Loader */}
         {loading && <p className="text-gray-500">Cargando usuarios...</p>}
 
-        {/* Tabla desktop */}
-        <UsersTable
-          users={filtered}
-          onEdit={handleOpenEdit}
-          onDelete={handleDelete}
-          onOpenBorrowed={handleOpenBorrowed}
-        />
+        {/* TABLA DESKTOP */}
+        <div className="hidden md:block w-full">
+          <UsersTable
+            users={filtered}
+            onEdit={handleOpenEdit}
+            onDelete={handleDelete}
+            onOpenBorrowed={handleOpenBorrowed}
+          />
+        </div>
 
-        {/* Lista mobile */}
-        <UsersList
-          users={filtered}
-          onEdit={handleOpenEdit}
-          onDelete={handleDelete}
-          onOpenBorrowed={handleOpenBorrowed}
-        />
+        {/* LISTA MOBILE - ARREGLADA */}
+        <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
+          <UsersList
+            users={filtered}
+            onEdit={handleOpenEdit}
+            onDelete={handleDelete}
+            onOpenBorrowed={handleOpenBorrowed}
+          />
+        </div>
 
-        {/* Modales */}
+        {/* MODALES */}
         <EditUserDialog
           open={isEditOpen}
           onClose={() => setIsEditOpen(false)}
