@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Menu, User, Book, ClipboardList, Settings, RotateCcw } from "lucide-react";
+import {
+  Menu,
+  User,
+  Book,
+  ClipboardList,
+  Settings,
+  RotateCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import Sidebar from "@/components/Sidebar";
@@ -17,13 +24,14 @@ import {
   fetchUsers,
   updateUserName,
   updateUserEmail,
+  updateUserRole,       // ⬅️ NUEVO
   deleteUser,
   createUser,
   getBorrowedBooksByAdmin,
 } from "@/services/userService";
 
+import { returnBook } from "@/services/loansService";
 import { formatError } from "@/utils/formatError";
-
 import { useNavigate } from "react-router-dom";
 
 export default function AdminUsers() {
@@ -40,11 +48,15 @@ export default function AdminUsers() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedLoan, setSelectedLoan] = useState(null);
+
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
   const [borrowedOpen, setBorrowedOpen] = useState(false);
   const [borrowedList, setBorrowedList] = useState([]);
+
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
@@ -60,11 +72,7 @@ export default function AdminUsers() {
     fetchUsers()
       .then((data) => setUsers(data))
       .catch((err) => {
-        setAlert({
-          type: "error",
-          message: formatError(err),
-        });
-
+        setAlert({ type: "error", message: formatError(err) });
         if (err.status === 401) navigate("/login");
       })
       .finally(() => setLoading(false));
@@ -80,25 +88,39 @@ export default function AdminUsers() {
   }, [alert]);
 
   // ==========================================================
-  // Editar usuario
+  // Abrir modal de edición
   // ==========================================================
   const handleOpenEdit = (user) => {
     setSelectedUser(user);
     setIsEditOpen(true);
   };
 
-  const handleSaveEdit = async (id, { name, email }) => {
+  // ==========================================================
+  // Guardar cambios de edición
+  // ==========================================================
+  const handleSaveEdit = async (id, { name, email, role }) => {
     try {
       if (name) {
         await updateUserName(id, { name });
-        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, name } : u)));
       }
       if (email) {
         await updateUserEmail(id, { email });
-        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, email } : u)));
+      }
+      if (role) {
+        await updateUserRole(id, { role }); // ← ACTUALIZA EL ROL
       }
 
-      setAlert({ type: "success", message: "Usuario actualizado correctamente." });
+      // Actualizar datos en frontend
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === id ? { ...u, name, email, role } : u
+        )
+      );
+
+      setAlert({
+        type: "success",
+        message: "Usuario actualizado correctamente.",
+      });
       setIsEditOpen(false);
     } catch (err) {
       setAlert({ type: "error", message: formatError(err) });
@@ -139,7 +161,7 @@ export default function AdminUsers() {
   };
 
   // ==========================================================
-  // Préstamos del usuario
+  // Ver préstamos del usuario
   // ==========================================================
   const handleOpenBorrowed = async (user) => {
     try {
@@ -152,6 +174,41 @@ export default function AdminUsers() {
     } catch (err) {
       setAlert({ type: "error", message: formatError(err) });
       setBorrowedOpen(false);
+    }
+  };
+
+  // ==========================================================
+  // Solicitar devolución
+  // ==========================================================
+  const handleReturnRequest = (loan) => {
+    setSelectedLoan(loan);
+    setReturnDialogOpen(true);
+  };
+
+  // ==========================================================
+  // Confirmar devolución
+  // ==========================================================
+  const handleConfirmReturn = async () => {
+    if (!selectedUser || !selectedLoan) return;
+
+    try {
+      const resp = await returnBook(
+        selectedUser.id,
+        selectedLoan.isbn ?? selectedLoan.bookId
+      );
+
+      setAlert({
+        type: "success",
+        message: resp.message || "Libro devuelto correctamente.",
+      });
+
+      const updated = await getBorrowedBooksByAdmin(selectedUser.id);
+      setBorrowedList(updated.borrowedBooks ?? updated.books ?? []);
+
+      setReturnDialogOpen(false);
+      setSelectedLoan(null);
+    } catch (err) {
+      setAlert({ type: "error", message: formatError(err) });
     }
   };
 
@@ -171,9 +228,7 @@ export default function AdminUsers() {
   // Render
   // ==========================================================
   return (
-    <div className="flex w-full min-h-screen overflow-hidden">
-
-      {/* ALERTAS */}
+    <div className="flex w-full min-h-screen overflow-x-hidden">
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-80">
           <AlertBox type={alert.type} message={alert.message} />
@@ -191,33 +246,40 @@ export default function AdminUsers() {
           sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
         <div
           className={`absolute left-0 top-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <Sidebar links={sidebarLinks} isMobile onClose={() => setSidebarOpen(false)} />
+          <Sidebar
+            links={sidebarLinks}
+            isMobile
+            onClose={() => setSidebarOpen(false)}
+          />
         </div>
       </div>
 
-      {/* CONTENIDO */}
+      {/* CONTENIDO PRINCIPAL */}
       <div className="flex-1 p-4 md:p-6 bg-gray-50 overflow-y-auto flex flex-col w-full max-w-full">
-
-        {/* Header móvil */}
         <div className="flex items-center justify-between md:hidden mb-4">
-          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu size={20} />
           </Button>
           <h2 className="text-lg font-semibold">Administración — Usuarios</h2>
         </div>
 
-        {/* Header desktop */}
         <h2 className="hidden md:block text-xl font-semibold mb-4">
           Administración — Usuarios
         </h2>
 
-        {/* Buscador + Agregar */}
         <SearchBar
           search={search}
           setSearch={setSearch}
@@ -228,7 +290,6 @@ export default function AdminUsers() {
 
         {loading && <p className="text-gray-500">Cargando usuarios...</p>}
 
-        {/* TABLA DESKTOP */}
         <div className="hidden md:block w-full">
           <UsersTable
             users={filtered}
@@ -238,7 +299,6 @@ export default function AdminUsers() {
           />
         </div>
 
-        {/* LISTA MOBILE - ARREGLADA */}
         <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
           <UsersList
             users={filtered}
@@ -266,8 +326,36 @@ export default function AdminUsers() {
           open={borrowedOpen}
           onClose={() => setBorrowedOpen(false)}
           user={selectedUser}
-          borrowed={borrowedList}
+          onReturnRequest={handleReturnRequest}
         />
+
+        {/* MODAL CONFIRMAR DEVOLUCIÓN */}
+        {returnDialogOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
+              <h3 className="text-lg font-semibold mb-3">
+                Confirmar devolución
+              </h3>
+              <p>¿Deseas registrar la devolución de este libro?</p>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setReturnDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+
+                <Button
+                  onClick={handleConfirmReturn}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

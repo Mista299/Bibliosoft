@@ -41,13 +41,22 @@ export async function fetchUsers() {
   return handleResp(res);
 }
 
-
 export async function updateUserName(id, body) {
   const res = await fetch(`${API_URL}/users/${id}/name`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+  });
+  return handleResp(res);
+}
+
+export async function updateUserRole(id, body) {
+  const res = await fetch(`${API_URL}/users/${id}/role`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body), // { role: "admin" }
   });
   return handleResp(res);
 }
@@ -63,7 +72,7 @@ export async function updateUserEmail(id, body) {
 }
 
 export async function deleteUser(id) {
-  const res = await fetch(`${API_URL}/${id}`, {
+  const res = await fetch(`${API_URL}/users/${id}`, {
     method: "DELETE",
     credentials: "include",
   });

@@ -415,3 +415,26 @@ exports.extendLoan = async (req, res) => {
     });
   }
 };
+
+exports.updateRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Validación básica
+    if (!role || !["admin", "user"].includes(role)) {
+      return res.status(400).json({ error: "Rol inválido. Debe ser 'admin' o 'user'." });
+    }
+
+    const updated = await userService.updateRole(id, role);
+
+    if (!updated) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+
+    res.json({ message: "Rol actualizado correctamente." });
+  } catch (error) {
+    console.error("Error updateRole():", error);
+    res.status(500).json({ error: "Error al actualizar el rol del usuario." });
+  }
+};

@@ -23,11 +23,7 @@ router.get(
 //  Devolver libro
 router.post("/returnBook", authenticateToken, authorizeRole(["admin"]), userController.returnBook);
 
-
 router.post("/extendLoan", authenticateToken, authorizeRole(["admin", "user"]), userController.extendLoan);
-
-
-
 
 // Perfil de usuario autenticado
 router.get("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserName);
@@ -39,10 +35,15 @@ router.put("/useremail", authenticateToken, authorizeRole(["user", "admin"]), us
 router.put("/userpass", authenticateToken, authorizeRole(["user", "admin"]), userController.putPassword);
 router.put("/updatePassword", authenticateToken, authorizeRole(["user", "admin"]), userController.updatePassword);
 
+
+
 // Administración de usuarios (solo admin)
 router.get("/", authenticateToken, authorizeRole(["admin"]), userController.getAllUsers);
 router.put("/:id/name", authenticateToken, authorizeRole(["admin"]), userController.updateName);
 router.put("/:id/email", authenticateToken, authorizeRole(["admin"]), userController.updateEmail);
+
+router.put("/:id/role", authenticateToken, authorizeRole(["admin"]), userController.updateRole);
+
 router.delete("/:id", authenticateToken, authorizeRole(["admin"]), userController.deleteUser);
 // 🚨 Endpoint temporal para crear un admin manualmente
 router.post("/create-admin-temp", userController.createUser);

@@ -364,7 +364,20 @@ exports.returnBook = async (userId, isbn) => {
   }
 };
 
+exports.updateRole = async (id, role) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { id: id },                // tu campo de cédula
+      { role: role },            // lo que quieres modificar
+      { new: true }              // devuelve actualizado
+    );
 
+    return user;
+  } catch (err) {
+    console.error("Error en updateRole():", err);
+    throw err;
+  }
+};
 
 // // Extender el plazo del préstamo
 // exports.extendLoan = async (userId, loanId, newReturnDate) => {
