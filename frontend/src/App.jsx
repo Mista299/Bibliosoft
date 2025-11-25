@@ -19,7 +19,7 @@ function App() {
       <Route path="/user/books" element={<UserLoansPanel />} />
       <Route path="/admin/settings" element={<SettingsPage />} />
       <Route path="/admin/users" element={<AdminUsers />} />
-      <Route path="/admin/loans/new" element={<AdminLoanCreate />} />
+      <Route path="/admin/loans" element={<AdminLoanCreate />} />
 
 
       <Route
