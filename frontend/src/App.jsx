@@ -6,6 +6,7 @@ import UserLoansPanel from "./pages/UserLoansPanel";
 import AdminReturns from "./pages/AdminReturns";
 import SettingsPage from "./pages/SettingsPage";
 import AdminUsers from "./pages/AdminUsers";
+import AdminLoanCreate from "./pages/AdminLoanCreate";
 
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
       <Route path="/user/books" element={<UserLoansPanel />} />
       <Route path="/admin/settings" element={<SettingsPage />} />
       <Route path="/admin/users" element={<AdminUsers />} />
+      <Route path="/admin/loans/new" element={<AdminLoanCreate />} />
+
 
       <Route
         path="*"

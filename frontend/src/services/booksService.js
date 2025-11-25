@@ -34,3 +34,25 @@ export async function createBook(book) {
   if (!res.ok) throw new Error(data.message || "Error creando libro")
   return data // { success, message, book } según tu backend
 }
+
+export async function borrowBook(isbn, userId) {
+  try {
+    const res = await fetch("/borrowBook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include", // ← importante si usas cookies (JWT)
+      body: JSON.stringify({ isbn, userId })
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw errorData || { message: "Error al registrar el préstamo" };
+    }
+
+    return await res.json();
+  } catch (err) {
+    throw err || { message: "Error al registrar el préstamo" };
+  }
+}

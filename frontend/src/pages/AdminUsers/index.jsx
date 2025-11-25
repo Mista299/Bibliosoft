@@ -24,7 +24,7 @@ import {
   fetchUsers,
   updateUserName,
   updateUserEmail,
-  updateUserRole,       // ⬅️ NUEVO
+  updateUserRole,
   deleteUser,
   createUser,
   getBorrowedBooksByAdmin,
@@ -33,6 +33,8 @@ import {
 import { returnBook } from "@/services/loansService";
 import { formatError } from "@/utils/formatError";
 import { useNavigate } from "react-router-dom";
+
+import ConfirmDeleteUser from "@/components/users/ConfirmDeleteUser";
 
 export default function AdminUsers() {
   const sidebarLinks = [
@@ -61,11 +63,13 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
 
+  // Modal de eliminar
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   const navigate = useNavigate();
 
-  // ==========================================================
-  // Cargar usuarios
-  // ==========================================================
+  // CARGAR USUARIOS
   useEffect(() => {
     setLoading(true);
 
@@ -78,74 +82,63 @@ export default function AdminUsers() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // ==========================================================
-  // Autocerrar alertas
-  // ==========================================================
+  // AUTO-CERRAR ALERTAS
   useEffect(() => {
     if (!alert) return;
     const t = setTimeout(() => setAlert(null), 4000);
     return () => clearTimeout(t);
   }, [alert]);
 
-  // ==========================================================
-  // Abrir modal de edición
-  // ==========================================================
+  // ABRIR MODAL DE EDICIÓN
   const handleOpenEdit = (user) => {
     setSelectedUser(user);
     setIsEditOpen(true);
   };
 
-  // ==========================================================
-  // Guardar cambios de edición
-  // ==========================================================
+  // GUARDAR EDICIÓN
   const handleSaveEdit = async (id, { name, email, role }) => {
     try {
-      if (name) {
-        await updateUserName(id, { name });
-      }
-      if (email) {
-        await updateUserEmail(id, { email });
-      }
-      if (role) {
-        await updateUserRole(id, { role }); // ← ACTUALIZA EL ROL
-      }
+      if (name) await updateUserName(id, { name });
+      if (email) await updateUserEmail(id, { email });
+      if (role) await updateUserRole(id, { role });
 
-      // Actualizar datos en frontend
       setUsers((prev) =>
         prev.map((u) =>
           u.id === id ? { ...u, name, email, role } : u
         )
       );
 
-      setAlert({
-        type: "success",
-        message: "Usuario actualizado correctamente.",
-      });
+      setAlert({ type: "success", message: "Usuario actualizado correctamente." });
       setIsEditOpen(false);
     } catch (err) {
       setAlert({ type: "error", message: formatError(err) });
     }
   };
 
-  // ==========================================================
-  // Eliminar usuario
-  // ==========================================================
-  const handleDelete = async (id) => {
-    if (!confirm("¿Seguro que deseas eliminar este usuario?")) return;
+  // ABRIR MODAL DE ELIMINACIÓN
+  const handleDelete = (id) => {
+    const user = users.find((u) => u.id === id);
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
 
+  // CONFIRMAR ELIMINACIÓN
+  const confirmDelete = async () => {
     try {
-      await deleteUser(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      await deleteUser(userToDelete.id);
+
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
 
       setAlert({ type: "success", message: "Usuario eliminado." });
+
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
     } catch (err) {
       setAlert({ type: "error", message: formatError(err) });
     }
   };
 
-  // ==========================================================
-  // Registrar usuario
-  // ==========================================================
+  // REGISTRAR USUARIO
   const handleAddUser = async (newUser) => {
     try {
       const created = await createUser(newUser);
@@ -160,9 +153,7 @@ export default function AdminUsers() {
     }
   };
 
-  // ==========================================================
-  // Ver préstamos del usuario
-  // ==========================================================
+  // ABRIR LIBROS PRESTADOS
   const handleOpenBorrowed = async (user) => {
     try {
       setSelectedUser(user);
@@ -177,17 +168,13 @@ export default function AdminUsers() {
     }
   };
 
-  // ==========================================================
-  // Solicitar devolución
-  // ==========================================================
+  // SOLICITAR DEVOLUCIÓN
   const handleReturnRequest = (loan) => {
     setSelectedLoan(loan);
     setReturnDialogOpen(true);
   };
 
-  // ==========================================================
-  // Confirmar devolución
-  // ==========================================================
+  // CONFIRMAR DEVOLUCIÓN
   const handleConfirmReturn = async () => {
     if (!selectedUser || !selectedLoan) return;
 
@@ -212,9 +199,7 @@ export default function AdminUsers() {
     }
   };
 
-  // ==========================================================
-  // Filtrar usuarios
-  // ==========================================================
+  // FILTRO
   const filtered = users.filter((u) => {
     const t = search.toLowerCase();
     return (
@@ -224,11 +209,9 @@ export default function AdminUsers() {
     );
   });
 
-  // ==========================================================
-  // Render
-  // ==========================================================
   return (
     <div className="flex w-full min-h-screen overflow-x-hidden">
+
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-80">
           <AlertBox type={alert.type} message={alert.message} />
@@ -240,7 +223,7 @@ export default function AdminUsers() {
         <Sidebar links={sidebarLinks} />
       </div>
 
-      {/* SIDEBAR MOBILE */}
+      {/* SIDEBAR MOVIL */}
       <div
         className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
           sidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -265,12 +248,10 @@ export default function AdminUsers() {
 
       {/* CONTENIDO PRINCIPAL */}
       <div className="flex-1 p-4 md:p-6 bg-gray-50 overflow-y-auto flex flex-col w-full max-w-full">
+
+        {/* HEADER MOBILE */}
         <div className="flex items-center justify-between md:hidden mb-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
+          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
           </Button>
           <h2 className="text-lg font-semibold">Administración — Usuarios</h2>
@@ -290,6 +271,7 @@ export default function AdminUsers() {
 
         {loading && <p className="text-gray-500">Cargando usuarios...</p>}
 
+        {/* TABLA DESKTOP */}
         <div className="hidden md:block w-full">
           <UsersTable
             users={filtered}
@@ -299,6 +281,7 @@ export default function AdminUsers() {
           />
         </div>
 
+        {/* LISTA MOBILE */}
         <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
           <UsersList
             users={filtered}
@@ -329,33 +312,34 @@ export default function AdminUsers() {
           onReturnRequest={handleReturnRequest}
         />
 
-        {/* MODAL CONFIRMAR DEVOLUCIÓN */}
+        {/* MODAL DEVOLUCIÓN */}
         {returnDialogOpen && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
-              <h3 className="text-lg font-semibold mb-3">
-                Confirmar devolución
-              </h3>
+              <h3 className="text-lg font-semibold mb-3">Confirmar devolución</h3>
               <p>¿Deseas registrar la devolución de este libro?</p>
 
               <div className="flex justify-end gap-3 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setReturnDialogOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setReturnDialogOpen(false)}>
                   Cancelar
                 </Button>
 
-                <Button
-                  onClick={handleConfirmReturn}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
+                <Button onClick={handleConfirmReturn} className="bg-purple-600 hover:bg-purple-700">
                   Confirmar
                 </Button>
               </div>
             </div>
           </div>
         )}
+
+        {/* MODAL DE ELIMINACIÓN */}
+        <ConfirmDeleteUser
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          user={userToDelete}
+        />
+
       </div>
     </div>
   );
