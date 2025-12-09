@@ -118,28 +118,30 @@ exports.getAllUsers = async (req, res) => {
 // Controlador para obtener el nombre del usuario
 exports.getUserName = async (req, res) => {
     try {
-        const userId = req.user.id; // Asegúrate de que el middleware `authenticateToken` agregue el userId al request
-        console.log("userId: ", userId)
-        const userName = await userService.getUserNameById(userId);
-        console.log("Controlador, obteniendo el nombre:")
-        console.log(userName)
+        const userId = req.user.id; // ID de Mongo
+        const user = await userService.getUserBy_Id(userId); // Devuelve todo el usuario
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
-        res.status(200).json({ name: userName });
+        res.status(200).json({ name: user.name }); // Siempre envía objeto
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error getUserName:", error);
+        res.status(500).json({ error: "Error interno al obtener nombre" });
     }
 };
 
-// Controlador para obtener el correo electrónico del usuario
 exports.getUserEmail = async (req, res) => {
     try {
-        const userId = req.user.id; // Asegúrate de que el middleware `authenticateToken` agregue el userId al request
-        const userEmail = await userService.getUserEmailById(userId);
-        res.status(200).json({ email: userEmail });
+        const userId = req.user.id;
+        const user = await userService.getUserBy_Id(userId);
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        res.status(200).json({ email: user.email });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error getUserEmail:", error);
+        res.status(500).json({ error: "Error interno al obtener email" });
     }
 };
+
 //------------------actuializar datos solo con autenticacion:------------------------------//
 // Actualizar el nombre de usuario
 exports.putName = async (req, res) => {

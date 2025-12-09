@@ -12,7 +12,7 @@ import { formatError } from "@/utils/formatError";
 
 export default function AdminLoanCreate() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: Settings },
+    // { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },

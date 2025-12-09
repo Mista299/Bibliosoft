@@ -37,7 +37,7 @@ export async function createBook(book) {
 
 export async function borrowBook(isbn, userId) {
   try {
-    const res = await fetch("/borrowBook", {
+    const res = await fetch(`${API_URL}/users/borrowBook`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

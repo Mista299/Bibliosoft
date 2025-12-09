@@ -25,15 +25,6 @@ router.post("/returnBook", authenticateToken, authorizeRole(["admin"]), userCont
 
 router.post("/extendLoan", authenticateToken, authorizeRole(["admin", "user"]), userController.extendLoan);
 
-// Perfil de usuario autenticado
-router.get("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserName);
-router.get("/useremail", authenticateToken, authorizeRole(["user", "admin"]), userController.getUserEmail);
-
-// Actualizaciones propias
-router.put("/username", authenticateToken, authorizeRole(["user", "admin"]), userController.putName);
-router.put("/useremail", authenticateToken, authorizeRole(["user", "admin"]), userController.putEmail);
-router.put("/userpass", authenticateToken, authorizeRole(["user", "admin"]), userController.putPassword);
-router.put("/updatePassword", authenticateToken, authorizeRole(["user", "admin"]), userController.updatePassword);
 
 
 

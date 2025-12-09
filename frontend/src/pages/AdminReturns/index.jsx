@@ -7,7 +7,7 @@ import { returnBook, fetchBorrowedBooks } from "@/services/loansService";
 
 export default function AdminReturns() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: Settings },
+    // { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
@@ -47,7 +47,7 @@ export default function AdminReturns() {
   // 🎨 Colores según el estado del préstamo
   const getRowColor = (status) => {
     switch (status) {
-      case "activo":
+      case "prestado":
         return { bg: "bg-green-50 hover:bg-green-100", text: "text-green-600" };
       case "vencido":
         return { bg: "bg-red-50 hover:bg-red-100", text: "text-red-600" };

@@ -38,7 +38,7 @@ import ConfirmDeleteUser from "@/components/users/ConfirmDeleteUser";
 
 export default function AdminUsers() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: Settings },
+    // { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Usuarios", path: "/admin/users", icon: User },
     { name: "Libros", path: "/admin/books", icon: Book },
     { name: "Préstamos", path: "/admin/loans", icon: ClipboardList },
@@ -311,6 +311,14 @@ export default function AdminUsers() {
           user={selectedUser}
           onReturnRequest={handleReturnRequest}
         />
+        <BorrowedBooksDialog
+          open={borrowedOpen}
+          onClose={() => setBorrowedOpen(false)}
+          user={selectedUser}
+          loans={borrowedList}      // ← AQUÍ
+          onReturnRequest={handleReturnRequest}
+        />
+
 
         {/* MODAL DEVOLUCIÓN */}
         {returnDialogOpen && (

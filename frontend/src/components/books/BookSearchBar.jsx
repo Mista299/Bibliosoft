@@ -15,9 +15,9 @@ export default function BookSearchBar({ search, setSearch, onAddBook }) {
         <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
       </div>
 
-      <Button variant="outline" className="flex gap-2 w-full sm:w-auto">
+      {/* <Button variant="outline" className="flex gap-2 w-full sm:w-auto">
         <Filter size={16} /> Filter
-      </Button>
+      </Button> */}
 
       <Button
         className="bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto"

@@ -8,9 +8,9 @@ import { useNavigate } from "react-router-dom";
 
 export default function UserLoansPanel() {
   const sidebarLinks = [
-    { name: "Configuración", path: "/admin/settings", icon: Settings },
+    // { name: "Configuración", path: "/admin/settings", icon: Settings },
     { name: "Mis Libros", path: "/user/books", icon: BookOpen },
-    { name: "Historial", path: "/user/history", icon: Clock },
+    // { name: "Historial", path: "/user/history", icon: Clock },
   ];
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -217,7 +217,7 @@ export default function UserLoansPanel() {
                         {loan.extensionCount ?? 0}
                       </td>
                       <td className="p-3 font-medium">
-                        {isOverdue(loan.returnDate) ? "Atrasado ⚠️" : "Activo"}
+                        {isOverdue(loan.returnDate) ? "Atrasado ⚠️" : "Prestado"}
                       </td>
                       <td className="p-3">
                         <Button

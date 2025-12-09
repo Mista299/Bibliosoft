@@ -15,29 +15,29 @@ function formatDate(dateString) {
   });
 }
 
-export default function BorrowedBooksDialog({ open, user, onClose, onReturnRequest }) {
+export default function BorrowedBooksDialog({
+  open,
+  user,
+  loans = [],
+  onClose,
+  onReturnRequest,
+}) {
 
   if (!open || !user) return null;
 
-  const loans = Array.isArray(user.borrowedBooks) ? user.borrowedBooks : [];
-
   const safeClose = () => {
-    if (typeof onClose === "function") {
-      try {
-        onClose();
-      } catch (err) {
-        console.error("Error en onClose():", err);
-      }
+    try {
+      onClose && onClose();
+    } catch (err) {
+      console.error("Error en onClose()", err);
     }
   };
 
   const safeReturnRequest = (loan) => {
-    if (typeof onReturnRequest === "function") {
-      try {
-        onReturnRequest(loan);
-      } catch (err) {
-        console.error("Error en onReturnRequest():", err);
-      }
+    try {
+      onReturnRequest && onReturnRequest(loan);
+    } catch (err) {
+      console.error("Error en onReturnRequest()", err);
     }
   };
 
@@ -53,6 +53,7 @@ export default function BorrowedBooksDialog({ open, user, onClose, onReturnReque
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Botón cerrar */}
         <button
           type="button"
           aria-label="Cerrar"
@@ -62,16 +63,18 @@ export default function BorrowedBooksDialog({ open, user, onClose, onReturnReque
           <XIcon className="h-5 w-5 text-gray-600" />
         </button>
 
+        {/* Título */}
         <h2 className="text-xl font-semibold mb-4">
           Préstamos de {user.name}
         </h2>
 
+        {/* Tabla */}
         <div className="overflow-x-auto">
           <table className="w-full table-auto border-collapse">
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-3 py-2 text-left">Título</th>
-                <th className="px-3 py-2 text-left">ISBN</th> {/* ← AGREGADO */}
+                <th className="px-3 py-2 text-left">ISBN</th>
                 <th className="px-3 py-2 text-left">Fecha préstamo</th>
                 <th className="px-3 py-2 text-left">Fecha devolución</th>
                 <th className="px-3 py-2 text-left">Acción</th>
@@ -81,38 +84,36 @@ export default function BorrowedBooksDialog({ open, user, onClose, onReturnReque
             <tbody>
               {loans.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-3 py-4 text-center text-gray-500"
+                  >
                     No hay préstamos registrados.
                   </td>
                 </tr>
               )}
 
               {loans.map((loan) => (
-                <tr
-                  key={loan.bookId ?? loan.id}
-                  className="even:bg-gray-50"
-                >
-                  <td className="px-3 py-2 align-top">
-                    {loan.title ?? "—"}
-                  </td>
+                <tr key={loan.bookId} className="even:bg-gray-50">
+                  <td className="px-3 py-2">{loan.title ?? "—"}</td>
 
-                  {/* ← NUEVA CELDA ISBN */}
-                  <td className="px-3 py-2 align-top">
-                    {loan.isbn ?? "—"}
-                  </td>
+                  <td className="px-3 py-2">{loan.isbn ?? "—"}</td>
 
-                  <td className="px-3 py-2 align-top">
+                  <td className="px-3 py-2">
                     {formatDate(loan.borrowedDate) ?? "—"}
                   </td>
 
-                  <td className="px-3 py-2 align-top">
+                  <td className="px-3 py-2">
                     {loan.returnDate
                       ? formatDate(loan.returnDate)
                       : "No devuelto"}
                   </td>
 
-                  <td className="px-3 py-2 align-top">
-                    {!loan.returnDate ? (
+                  {/* ACCIONES */}
+                  <td className="px-3 py-2 text-center">
+
+                    {/* --- MOSTRAR BOTÓN DEVOLVER SOLO SI EL PRÉSTAMO SIGUE ACTIVO --- */}
+                    {loan.actualReturnDate === null && loan.status === "activo" ? (
                       <button
                         type="button"
                         onClick={() => safeReturnRequest(loan)}
@@ -122,8 +123,12 @@ export default function BorrowedBooksDialog({ open, user, onClose, onReturnReque
                         <span className="text-sm">Devolver</span>
                       </button>
                     ) : (
-                      <span className="text-sm text-gray-500">—</span>
+                      // --- SI NO SE MUESTRA EL BOTÓN, MOSTRAR ETIQUETA ---
+                      <span className="text-sm text-gray-500">
+                        {loan.actualReturnDate ? "Devuelto" : "—"}
+                      </span>
                     )}
+
                   </td>
                 </tr>
               ))}

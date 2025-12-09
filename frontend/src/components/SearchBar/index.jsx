@@ -36,7 +36,8 @@ export default function SearchBar({
       {onAdd && (
         <Button
           className="bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto"
-          onClick={onAdd}
+          onClick={() => onAdd()}
+
         >
           {addLabel}
         </Button>
